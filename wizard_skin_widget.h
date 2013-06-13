@@ -17,8 +17,8 @@
  *   51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.              *
  ***************************************************************************/
 
-#ifndef WIZARD_IM_WIDGET_H
-#define WIZARD_IM_WIDGET_H
+#ifndef WIZARD_SKIN_WIDGET_H
+#define WIZARD_SKIN_WIDGET_H
 
 #include <gtk/gtk.h>
 #include <gio/gio.h>
@@ -26,50 +26,40 @@
 
 G_BEGIN_DECLS
 
-#define FCITX_TYPE_WIZARD_IM_WIDGET fcitx_wizard_im_widget_get_type()
+#define FCITX_TYPE_WIZARD_SKIN_WIDGET fcitx_wizard_skin_widget_get_type()
 
-#define FCITX_WIZARD_IM_WIDGET(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST ((obj), FCITX_TYPE_WIZARD_IM_WIDGET, FcitxWizardImWidget))
+#define FCITX_WIZARD_SKIN_WIDGET(obj) \
+    (G_TYPE_CHECK_INSTANCE_CAST ((obj), FCITX_TYPE_WIZARD_SKIN_WIDGET, FcitxWizardSkinWidget))
 
-#define FCITX_WIZARD_IM_WIDGET_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_CAST ((klass), FCITX_TYPE_WIZARD_IM_WIDGET, FcitxWizardImWidgetClass))
+#define FCITX_WIZARD_SKIN_WIDGET_CLASS(klass) \
+    (G_TYPE_CHECK_CLASS_CAST ((klass), FCITX_TYPE_WIZARD_SKIN_WIDGET, FcitxWizardSkinWidgetClass))
 
-#define FCITX_IS_WIZARD_IM_WIDGET(obj) \
-    (G_TYPE_CHECK_INSTANCE_TYPE ((obj), FCITX_TYPE_WIZARD_IM_WIDGET))
+#define FCITX_IS_WIZARD_SKIN_WIDGET(obj) \
+    (G_TYPE_CHECK_INSTANCE_TYPE ((obj), FCITX_TYPE_WIZARD_SKIN_WIDGET))
 
-#define FCITX_IS_WIZARD_IM_WIDGET_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_TYPE ((klass), FCITX_TYPE_WIZARD_IM_WIDGET))
+#define FCITX_IS_WIZARD_SKIN_WIDGET_CLASS(klass) \
+    (G_TYPE_CHECK_CLASS_TYPE ((klass), FCITX_TYPE_WIZARD_SKIN_WIDGET))
 
-#define FCITX_WIZARD_IM_WIDGET_GET_CLASS(obj) \
-    (G_TYPE_INSTANCE_GET_CLASS ((obj), FCITX_TYPE_WIZARD_IM_WIDGET, FcitxWizardImWidgetClass))
+#define FCITX_WIZARD_SKIN_WIDGET_GET_CLASS(obj) \
+    (G_TYPE_INSTANCE_GET_CLASS ((obj), FCITX_TYPE_WIZARD_SKIN_WIDGET, FcitxWizardSkinWidgetClass))
 
-typedef struct _FcitxWizardImWidget FcitxWizardImWidget;
-typedef struct _FcitxWizardImWidgetClass FcitxWizardImWidgetClass;
+typedef struct _FcitxWizardSkinWidget FcitxWizardSkinWidget;
+typedef struct _FcitxWizardSkinWidgetClass FcitxWizardSkinWidgetClass;
 
-struct _FcitxWizardImWidget {
+struct _FcitxWizardSkinWidget {
     GtkBox parent;
-    GtkListStore* imstore;
-    GtkWidget* imview;
-    FcitxInputMethod* improxy;
-    GPtrArray* array;
-    gchar* focus;
-    GtkWidget* addimbutton;
-    GtkWidget* delimbutton;
-    GtkWidget* moveupbutton;
-    GtkWidget* movedownbutton;
-//    GtkWidget* configurebutton;
-//    GtkWidget* default_layout_button;
-    GtkWidget* scrolledwindow;
-    GtkWidget* toolbar;
+    GtkWidget* default_skin;
+    GtkWidget* classic_skin;
+    GtkWidget* dark_skin;
     GtkBuilder* builder;
 };
 
-struct _FcitxWizardImWidgetClass {
+struct _FcitxWizardSkinWidgetClass {
     GtkBoxClass parent_class;
 };
 
 GtkWidget*
-fcitx_wizard_im_widget_new(void);
+fcitx_wizard_skin_widget_new(void);
 
 G_END_DECLS
 

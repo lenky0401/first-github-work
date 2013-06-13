@@ -111,7 +111,7 @@ static void
 fcitx_wizard_im_widget_init(FcitxWizardImWidget* self)
 {
     self->builder = gtk_builder_new();
-    gtk_builder_add_from_resource(self->builder, "/org/fcitx/fcitx-config-gtk3/im_widget.ui", NULL);
+    gtk_builder_add_from_resource(self->builder, "/org/fcitx/fcitx-config-gtk3/wizard_im_widget.ui", NULL);
 
 #define _GET_OBJECT(NAME) \
     self->NAME = (typeof(self->NAME)) gtk_builder_get_object(self->builder, #NAME);
@@ -122,8 +122,8 @@ fcitx_wizard_im_widget_init(FcitxWizardImWidget* self)
     _GET_OBJECT(delimbutton)
     _GET_OBJECT(moveupbutton)
     _GET_OBJECT(movedownbutton)
-    _GET_OBJECT(configurebutton)
-    _GET_OBJECT(default_layout_button)
+//    _GET_OBJECT(configurebutton)
+//    _GET_OBJECT(default_layout_button)
     _GET_OBJECT(scrolledwindow)
     _GET_OBJECT(toolbar)
 
@@ -143,8 +143,8 @@ fcitx_wizard_im_widget_init(FcitxWizardImWidget* self)
     gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->delimbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("list-remove-symbolic"), GTK_ICON_SIZE_BUTTON));
     gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->moveupbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("go-up-symbolic"), GTK_ICON_SIZE_BUTTON));
     gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->movedownbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("go-down-symbolic"), GTK_ICON_SIZE_BUTTON));
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->configurebutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("preferences-system-symbolic"), GTK_ICON_SIZE_BUTTON));
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->default_layout_button), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("input-keyboard-symbolic"), GTK_ICON_SIZE_BUTTON));
+//    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->configurebutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("preferences-system-symbolic"), GTK_ICON_SIZE_BUTTON));
+//    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->default_layout_button), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("input-keyboard-symbolic"), GTK_ICON_SIZE_BUTTON));
 
     g_signal_connect(G_OBJECT(self->addimbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_addim_button_clicked), self);
     g_signal_connect(G_OBJECT(self->delimbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_delim_button_clicked), self);
@@ -277,7 +277,7 @@ void _fcitx_wizard_im_widget_im_selection_changed(GtkTreeSelection *selection, g
 
     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
         gtk_widget_set_sensitive(GTK_WIDGET(self->delimbutton), TRUE);
-        gtk_widget_set_sensitive(GTK_WIDGET(self->configurebutton), TRUE);
+//        gtk_widget_set_sensitive(GTK_WIDGET(self->configurebutton), TRUE);
         GtkTreePath* path = gtk_tree_model_get_path(model, &iter);
 
         gint* ind = gtk_tree_path_get_indices(path);
@@ -292,7 +292,7 @@ void _fcitx_wizard_im_widget_im_selection_changed(GtkTreeSelection *selection, g
         gtk_tree_path_free(path);
     } else {
         gtk_widget_set_sensitive(GTK_WIDGET(self->delimbutton), FALSE);
-        gtk_widget_set_sensitive(GTK_WIDGET(self->configurebutton), FALSE);
+//        gtk_widget_set_sensitive(GTK_WIDGET(self->configurebutton), FALSE);
     }
 }
 

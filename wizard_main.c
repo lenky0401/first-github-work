@@ -22,7 +22,6 @@
 #include <libintl.h>
 #include <locale.h>
 #include "config.h"
-#include "wizard_main_window.h"
 
 #include "config_widget.h"
 
@@ -32,7 +31,7 @@
 #include <string.h>
 #include "wizard_im_widget.h"
 #include "fcitx-config-wizard-gtk3-resources.h"
-
+#include "wizard_assistant_window.h"
 
 static void
 fcitx_config_wizard_app_activate (GApplication *application)
@@ -44,7 +43,7 @@ fcitx_config_wizard_app_activate (GApplication *application)
     }
     else {
         GtkWidget *window;
-        window = fcitx_wizard_main_window_new();
+        window = create_assistant();
         gtk_application_add_window(GTK_APPLICATION(application), GTK_WINDOW(window));
         gtk_widget_show_all (GTK_WIDGET (window));
     }
@@ -78,7 +77,7 @@ int fcitx_config_wizard_app_handle_command_line (GApplication *application,
     g_application_activate(G_APPLICATION (application));
     GList* list = gtk_application_get_windows (GTK_APPLICATION(application));
     if (list) {
-        FcitxWizardMainWindow* mainWindow = FCITX_WIZARD_MAIN_WINDOW (list->data);
+        //FcitxWizardMainWindow* mainWindow = FCITX_WIZARD_MAIN_WINDOW (list->data);
         /*
         FcitxAddon* addon = NULL;
         if (argc >= 2 && argv[1])

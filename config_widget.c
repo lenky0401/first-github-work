@@ -616,7 +616,7 @@ fcitx_config_widget_setup_ui(FcitxConfigWidget *self)
 
 #1  0x0805125d in fcitx_config_widget_new (cfdesc=0x848c450, 
     prefix=0x805c09a "conf", name=0x8455678 "fcitx-classic-ui.config", 
-    subconfig=0x832dd38 "Skin:configfile:skin/* /fcitx_skin.conf:skin.desc,fcitx:domain")
+    subconfig=0x832dd38 "Skin:configfile:skin /fcitx_skin.conf:skin.desc,fcitx:domain")
 */
 FcitxConfigWidget*
 fcitx_config_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix, const gchar* name, const gchar* subconfig)

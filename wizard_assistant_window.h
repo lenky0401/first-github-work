@@ -21,35 +21,6 @@
 
 #define WIZARD_MAIN_WINDOW_H
 
-#include <gtk/gtk.h>
-#include <fcitx-config/fcitx-config.h>
-
-#include "common.h"
-
-G_BEGIN_DECLS
-
-#define FCITX_TYPE_WIZARD_MAIN_WINDOW fcitx_wizard_main_window_get_type()
-
-#define FCITX_WIZARD_MAIN_WINDOW(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST ((obj), FCITX_TYPE_WIZARD_MAIN_WINDOW, FcitxWizardMainWindow))
-
-#define FCITX_WIZARD_MAIN_WINDOW_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_CAST ((klass), FCITX_TYPE_WIZARD_MAIN_WINDOW, FcitxWizardMainWindowClass))
-
-#define FCITX_IS_WIZARD_MAIN_WINDOW(obj) \
-    (G_TYPE_CHECK_INSTANCE_TYPE ((obj), FCITX_TYPE_WIZARD_MAIN_WINDOW))
-
-#define FCITX_IS_WIZARD_MAIN_WINDOW_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_TYPE ((klass), FCITX_TYPE_WIZARD_MAIN_WINDOW))
-
-#define FCITX_WIZARD_MAIN_WINDOW_GET_CLASS(obj) \
-    (G_TYPE_INSTANCE_GET_CLASS ((obj), FCITX_TYPE_WIZARD_MAIN_WINDOW, FcitxWizardMainWindowClass))
-
-typedef struct {
-    GtkWidget* page;
-    GtkTreeIter iter;
-} ConfigPage;
-
 #define PAGE_INFO_NUM (6)
 
 typedef struct
@@ -61,30 +32,6 @@ typedef struct
     gboolean complete;
 } PageInfo;
 
-typedef struct {
-    GtkWindow parent;
-    GtkWidget* vbox;
-    GtkWidget* pagelabel;
-    GtkWidget* button;
-    GtkWidget* addonview;
-    UT_array* addons;
-    GtkWidget* advancecheckbox;
-    GtkTreeModel* filtermodel;
-    GtkListStore* addonstore;
-    GtkTreeViewColumn* checkboxcolumn;
-    GtkCellRenderer* togglecell;
-    GtkWidget* filterentry;
-    GtkWidget* assistant;
-#define WIZARD_STEP_NUM (6)    
-    GtkWidget* wizard_box[WIZARD_STEP_NUM];
-} FcitxWizardMainWindow;
-
-typedef struct {
-    GtkWindowClass parent_class;
-} FcitxWizardMainWindowClass;
-
-GType fcitx_wizard_main_window_get_type(void);
-
-GtkWidget* fcitx_wizard_main_window_new(void);
+GtkWidget* create_assistant(void);
 
 #endif

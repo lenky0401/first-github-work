@@ -8,48 +8,20 @@
 #include <fcitx-config/xdg.h>
 
 #include "config.h"
-#include "wizard_main_window.h"
 #include "config_widget.h"
 #include "configdesc.h"
 #include "im_widget.h"
 #include "ui_widget.h"
+#include "wizard_im_widget.h"
 
-enum {
-    LIST_ADDON,
-    N_COLUMNS
-};
+#include "wizard_assistant_window.h"
 
-G_DEFINE_TYPE(FcitxWizardMainWindow, fcitx_wizard_main_window, GTK_TYPE_WINDOW)
+static void assistant_cancel(GtkAssistant * assistant, gpointer data);
 
-static void fcitx_wizard_main_window_finalize(GObject* object);
+static void assistant_close(GtkAssistant * assistant, gpointer data);
 
-static void
-fcitx_wizard_main_window_class_init(FcitxWizardMainWindowClass *klass)
-{
-    GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-    gobject_class->finalize = fcitx_wizard_main_window_finalize;
-}
 
-GtkWidget*
-fcitx_wizard_main_window_new()
-{
-    FcitxWizardMainWindow* widget =
-        g_object_new(FCITX_TYPE_WIZARD_MAIN_WINDOW,
-                     NULL);
-
-    return GTK_WIDGET(widget);
-}
-
-void fcitx_wizard_main_window_finalize(GObject* object)
-{
-    FcitxWizardMainWindow* self = FCITX_WIZARD_MAIN_WINDOW(object);
-    if (self->addons)
-        utarray_free(self->addons);
-
-    G_OBJECT_CLASS (fcitx_wizard_main_window_parent_class)->finalize (object);
-}
-
-GtkWidget *page_input_method_engin()
+GtkWidget *page_input_method_engin(void)
 {
     GtkWidget* page_box;
     GtkWidget* imwidget = fcitx_wizard_im_widget_new();
@@ -61,7 +33,7 @@ GtkWidget *page_input_method_engin()
 
 }
 
-GtkWidget *page_personality_skin()
+GtkWidget *page_personality_skin(void)
 {
     GtkWidget* page_box;
     GtkWidget* imwidget = gtk_image_new_from_file((gchar*)"./002.png");
@@ -72,25 +44,8 @@ GtkWidget *page_personality_skin()
     return page_box;
 }
 
-static void
-fcitx_wizard_main_window_init(FcitxWizardMainWindow* self)
-{
-    GtkWidget* vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_container_add(GTK_CONTAINER(self), vbox);
 
-    self->assistant = create_assistant();
-    gtk_widget_set_size_request(GTK_WIDGET(self), -1, 400);
-    gtk_box_pack_start(GTK_BOX(vbox), self->assistant, TRUE, TRUE, 0);
-
-        
-    gtk_window_set_icon_name(GTK_WINDOW(self), "fcitx");
-    gtk_window_set_title(GTK_WINDOW(self), _("Input Method Configuration"));
-    
-    gtk_window_set_position(GTK_WINDOW(self), GTK_WIN_POS_CENTER);
-}
-
-GtkWidget *
-create_assistant ()
+GtkWidget *create_assistant(void)
 {
     GtkWidget *assistant;
     guint i;
@@ -105,11 +60,11 @@ create_assistant ()
 
      /* Create a new assistant widget with no pages. */
     assistant = gtk_assistant_new ();
-    gtk_widget_set_size_request (assistant, 600, 450);
+    gtk_widget_set_size_request (assistant, 650, 450);
     gtk_window_set_position (GTK_WINDOW (assistant), GTK_WIN_POS_CENTER);
     gtk_window_set_title (GTK_WINDOW (assistant), "Fcitx配置向导");
-    g_signal_connect (G_OBJECT (assistant), "destroy",
-                         G_CALLBACK (gtk_main_quit), NULL);
+//    g_signal_connect (G_OBJECT (assistant), "destroy",
+//                         G_CALLBACK (gtk_main_quit), NULL);
 
     page[0].widget = gtk_label_new (NULL);
     gchar* s = g_strdup_printf("<b>欢迎使用个性化设置向导！</b>");
@@ -137,16 +92,24 @@ create_assistant ()
         gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant),
                                             page[i].widget, page[i].complete);
     }
-/*
+    
     g_signal_connect (G_OBJECT (assistant), "cancel",
                          G_CALLBACK (assistant_cancel), NULL);
     g_signal_connect (G_OBJECT (assistant), "close",
                          G_CALLBACK (assistant_close), NULL);
-    gtk_widget_show_all (assistant);
-    gtk_main ();
-    return 0;
-*/
+    
     return assistant;
 }
 
+static void
+assistant_cancel(GtkAssistant * assistant, gpointer data)
+{
+    gtk_widget_destroy(GTK_WIDGET (assistant));
+}
+
+static void
+assistant_close(GtkAssistant * assistant, gpointer data)
+{
+    gtk_widget_destroy(GTK_WIDGET (assistant));
+}
 
