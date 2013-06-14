@@ -51,6 +51,9 @@ struct _FcitxWizardSkinWidget {
     GtkWidget* default_skin;
     GtkWidget* classic_skin;
     GtkWidget* dark_skin;
+    GtkWidget* default_skin_img;
+    GtkWidget* classic_skin_img;
+    GtkWidget* dark_skin_img;
     GtkBuilder* builder;
 };
 

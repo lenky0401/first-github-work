@@ -72,6 +72,8 @@ fcitx_wizard_skin_widget_constructor   (GType                  gtype,
 static void
 fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
 {
+    GError *error = NULL;
+
     self->builder = gtk_builder_new();
     gtk_builder_add_from_resource(self->builder, "/org/fcitx/fcitx-config-gtk3/wizard_skin_widget.ui", NULL);
 
@@ -81,6 +83,32 @@ fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
     _GET_OBJECT(default_skin)
     _GET_OBJECT(classic_skin)
     _GET_OBJECT(dark_skin)
+
+    gtk_widget_set_size_request(GTK_WIDGET(self->default_skin), 100, 36);
+//    gtk_button_set_label(GTK_BUTTON(self->default_skin), _("Show Advance Option"));
+    gtk_button_set_label(GTK_BUTTON(self->default_skin), _("默认"));
+
+    gtk_widget_set_size_request(GTK_WIDGET(self->classic_skin), 100, 36);
+    gtk_button_set_label(GTK_BUTTON(self->classic_skin), _("经典"));
+
+    gtk_widget_set_size_request(GTK_WIDGET(self->dark_skin), 100, 36);
+    gtk_button_set_label(GTK_BUTTON(self->dark_skin), _("墨黑"));
+    
+    _GET_OBJECT(default_skin_img)
+    _GET_OBJECT(classic_skin_img)
+    _GET_OBJECT(dark_skin_img)
+
+    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file("./default.png", &error);
+    gtk_image_set_from_pixbuf(GTK_IMAGE(self->default_skin_img), pixbuf);
+    g_object_unref(pixbuf);
+
+    pixbuf = gdk_pixbuf_new_from_file("./classic.png", &error);
+    gtk_image_set_from_pixbuf(GTK_IMAGE(self->classic_skin_img), pixbuf);
+    g_object_unref(pixbuf);
+
+    pixbuf = gdk_pixbuf_new_from_file("./dark.png", &error);
+    gtk_image_set_from_pixbuf(GTK_IMAGE(self->dark_skin_img), pixbuf);
+    g_object_unref(pixbuf);
 
 /*
     gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->addimbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("list-add-symbolic"), GTK_ICON_SIZE_BUTTON));
