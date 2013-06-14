@@ -13,6 +13,9 @@
 #include "im_widget.h"
 #include "ui_widget.h"
 #include "wizard_im_widget.h"
+#include "wizard_skin_widget.h"
+#include "wizard_candidate_widget.h"
+
 
 #include "wizard_assistant_window.h"
 
@@ -36,14 +39,24 @@ GtkWidget *page_input_method_engin(void)
 GtkWidget *page_personality_skin(void)
 {
     GtkWidget* page_box;
-    GtkWidget* imwidget = gtk_image_new_from_file((gchar*)"./002.png");
-    
+    GtkWidget* imwidget = fcitx_wizard_skin_widget_new();
+   
     page_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);
-    
+   
     return page_box;
 }
 
+GtkWidget *page_candidate_word(void)
+{
+    GtkWidget* page_box;
+    GtkWidget* imwidget = fcitx_wizard_candidate_widget_new();
+   
+    page_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);
+   
+    return page_box;
+}
 
 GtkWidget *create_assistant(void)
 {
@@ -53,7 +66,7 @@ GtkWidget *create_assistant(void)
         {NULL, -1, "欢迎使用设置向导", GTK_ASSISTANT_PAGE_INTRO, TRUE},
         {NULL, -1, "输入法引擎选择", GTK_ASSISTANT_PAGE_CONTENT, TRUE},
         {NULL, -1, "个性皮肤选择", GTK_ASSISTANT_PAGE_CONTENT, TRUE},
-        {NULL, -1, "候选词栏设置", GTK_ASSISTANT_PAGE_CONTENT, TRUE},
+        {NULL, -1, "候选词设置", GTK_ASSISTANT_PAGE_CONTENT, TRUE},
         {NULL, -1, "快捷键设置", GTK_ASSISTANT_PAGE_CONTENT, TRUE},
         {NULL, -1, "向导设置完成", GTK_ASSISTANT_PAGE_CONFIRM, TRUE},
     };
@@ -69,14 +82,19 @@ GtkWidget *create_assistant(void)
     page[0].widget = gtk_label_new (NULL);
     gchar* s = g_strdup_printf("<b>欢迎使用个性化设置向导！</b>");
     gtk_label_set_markup(GTK_LABEL(page[0].widget), s);
+    g_free(s);
 
     page[1].widget = page_input_method_engin();
 
   
-    page[2].widget = gtk_label_new ("step 2 test");
-    page[3].widget = gtk_label_new ("step 3 test");
+    page[2].widget = page_personality_skin();
+    page[3].widget = page_candidate_word();
     page[4].widget = gtk_label_new ("step 4 test");
-    page[5].widget = gtk_label_new ("step 5 test");
+    page[5].widget = gtk_label_new (NULL);
+    s = g_strdup_printf("<b>个性化设置向导完成，欢迎下次使用！</b>");
+    gtk_label_set_markup(GTK_LABEL(page[0].widget), s);
+    g_free(s);
+
 
     /* Add five pages to the GtkAssistant dialog. */
     for (i = 0; i < PAGE_INFO_NUM; i++) {

@@ -11,14 +11,20 @@ set(fcitx_config_wizard_gtk3_sources
   wizard_assistant_window.c
   wizard_im_widget.c
   wizard_skin_widget.c
+  wizard_candidate_widget.c
+  wizard_hotkey_widget.c
   gdm-languages.c
   im_dialog.c
+  keygrab.c
   fcitx-config-wizard-gtk3-resources.c
   )
 set(fcitx_config_wizard_gtk3_headers
   wizard_assistant_window.h
   wizard_im_widget.h
   wizard_skin_widget.h
+  wizard_candidate_widget.h
+  wizard_hotkey_widget.H
+  keygrab.h
   common.h
   configdesc.h
   config_widget.h
