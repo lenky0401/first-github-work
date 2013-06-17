@@ -16,16 +16,13 @@
 #include "wizard_skin_widget.h"
 #include "wizard_candidate_widget.h"
 #include "wizard_hotkey_widget.h"
-
-
 #include "wizard_assistant_window.h"
 
 static void assistant_cancel(GtkAssistant * assistant, gpointer data);
-
 static void assistant_close(GtkAssistant * assistant, gpointer data);
 
-
-GtkWidget *page_input_method_engin(void)
+GtkWidget *
+page_input_method_engin(void)
 {
     GtkWidget* page_box;
     GtkWidget* imwidget = fcitx_wizard_im_widget_new();
@@ -37,7 +34,8 @@ GtkWidget *page_input_method_engin(void)
 
 }
 
-GtkWidget *page_personality_skin(void)
+GtkWidget *
+page_personality_skin(void)
 {
     GtkWidget* page_box;
     GtkWidget* imwidget = fcitx_wizard_skin_widget_new();
@@ -48,7 +46,8 @@ GtkWidget *page_personality_skin(void)
     return page_box;
 }
 
-GtkWidget *page_candidate_word(void)
+GtkWidget *
+page_candidate_word(void)
 {
     GtkWidget* page_box;
     GtkWidget* imwidget = fcitx_wizard_candidate_widget_new();
@@ -59,7 +58,8 @@ GtkWidget *page_candidate_word(void)
     return page_box;
 }
 
-GtkWidget *page_hotkey(void)
+GtkWidget *
+page_hotkey(void)
 {
     GtkWidget* page_box;
     GtkWidget* imwidget = fcitx_wizard_hotkey_widget_new();
@@ -71,10 +71,11 @@ GtkWidget *page_hotkey(void)
 }
 
 
-GtkWidget *create_assistant(void)
+GtkWidget *
+create_assistant(void)
 {
-    GtkWidget *assistant;
     guint i;
+    GtkWidget *assistant;
     PageInfo page[PAGE_INFO_NUM] = {
         {NULL, -1, "欢迎使用设置向导", GTK_ASSISTANT_PAGE_INTRO, TRUE},
         {NULL, -1, "输入法引擎选择", GTK_ASSISTANT_PAGE_CONTENT, TRUE},
@@ -84,15 +85,12 @@ GtkWidget *create_assistant(void)
         {NULL, -1, "向导设置完成", GTK_ASSISTANT_PAGE_CONFIRM, TRUE},
     };
 
-     /* Create a new assistant widget with no pages. */
-    assistant = gtk_assistant_new ();
-    gtk_widget_set_size_request (assistant, 650, 450);
-    gtk_window_set_position (GTK_WINDOW (assistant), GTK_WIN_POS_CENTER);
-    gtk_window_set_title (GTK_WINDOW (assistant), "Fcitx配置向导");
-//    g_signal_connect (G_OBJECT (assistant), "destroy",
-//                         G_CALLBACK (gtk_main_quit), NULL);
+    assistant = gtk_assistant_new();
+    gtk_widget_set_size_request(assistant, 650, 450);
+    gtk_window_set_position(GTK_WINDOW(assistant), GTK_WIN_POS_CENTER);
+    gtk_window_set_title(GTK_WINDOW(assistant), "Fcitx配置向导");
 
-    page[0].widget = gtk_label_new (NULL);
+    page[0].widget = gtk_label_new(NULL);
     gchar* s = g_strdup_printf("<b>欢迎使用个性化设置向导！</b>");
     gtk_label_set_markup(GTK_LABEL(page[0].widget), s);
     g_free(s);
@@ -103,31 +101,28 @@ GtkWidget *create_assistant(void)
     page[2].widget = page_personality_skin();
     page[3].widget = page_candidate_word();
     page[4].widget = page_hotkey();
-    page[5].widget = gtk_label_new (NULL);
+    page[5].widget = gtk_label_new(NULL);
     s = g_strdup_printf("<b>个性化设置向导完成，欢迎下次使用！</b>");
     gtk_label_set_markup(GTK_LABEL(page[5].widget), s);
     g_free(s);
 
-
-    /* Add five pages to the GtkAssistant dialog. */
     for (i = 0; i < PAGE_INFO_NUM; i++) {
-        page[i].index = gtk_assistant_append_page (GTK_ASSISTANT (assistant),
-                                                      page[i].widget);
-        gtk_assistant_set_page_title (GTK_ASSISTANT (assistant),
-                                         page[i].widget, page[i].title);
-        gtk_assistant_set_page_type (GTK_ASSISTANT (assistant),
-                                        page[i].widget, page[i].type);
+        page[i].index = gtk_assistant_append_page(GTK_ASSISTANT(assistant), 
+            page[i].widget);
+        
+        gtk_assistant_set_page_title(GTK_ASSISTANT(assistant), page[i].widget, 
+            page[i].title);
+        gtk_assistant_set_page_type(GTK_ASSISTANT(assistant), page[i].widget, 
+            page[i].type);
 
-        /* Set the introduction and conclusion pages as complete so they can be
-         * incremented or closed. */
-        gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant),
-                                            page[i].widget, page[i].complete);
+        gtk_assistant_set_page_complete(GTK_ASSISTANT(assistant), page[i].widget, 
+            page[i].complete);
     }
-    
-    g_signal_connect (G_OBJECT (assistant), "cancel",
-                         G_CALLBACK (assistant_cancel), NULL);
-    g_signal_connect (G_OBJECT (assistant), "close",
-                         G_CALLBACK (assistant_close), NULL);
+
+    g_signal_connect(G_OBJECT(assistant), "cancel", G_CALLBACK(assistant_cancel), 
+        NULL);
+    g_signal_connect(G_OBJECT(assistant), "close", G_CALLBACK (assistant_close), 
+        NULL);
     
     return assistant;
 }
@@ -135,12 +130,12 @@ GtkWidget *create_assistant(void)
 static void
 assistant_cancel(GtkAssistant * assistant, gpointer data)
 {
-    gtk_widget_destroy(GTK_WIDGET (assistant));
+    gtk_widget_destroy(GTK_WIDGET(assistant));
 }
 
 static void
 assistant_close(GtkAssistant * assistant, gpointer data)
 {
-    gtk_widget_destroy(GTK_WIDGET (assistant));
+    gtk_widget_destroy(GTK_WIDGET(assistant));
 }
 

@@ -22,32 +22,13 @@
 #include <libintl.h>
 #include <locale.h>
 #include "config.h"
-
 #include "config_widget.h"
-
 #include <getopt.h>
-
 #include <gtk/gtk.h>
 #include <string.h>
 #include "wizard_im_widget.h"
 #include "fcitx-config-wizard-gtk3-resources.h"
 #include "wizard_assistant_window.h"
-
-static void
-fcitx_config_wizard_app_activate (GApplication *application)
-{
-    GList* list = gtk_application_get_windows (GTK_APPLICATION(application));
-    if (list)
-    {
-        gtk_window_present (GTK_WINDOW (list->data));
-    }
-    else {
-        GtkWidget *window;
-        window = create_assistant();
-        gtk_application_add_window(GTK_APPLICATION(application), GTK_WINDOW(window));
-        gtk_widget_show_all (GTK_WIDGET (window));
-    }
-}
 
 typedef GtkApplication FcitxConfigWizardApp;
 typedef GtkApplicationClass FcitxConfigWizardAppClass;
@@ -55,39 +36,43 @@ typedef GtkApplicationClass FcitxConfigWizardAppClass;
 G_DEFINE_TYPE (FcitxConfigWizardApp, fcitx_config_wizard_app, GTK_TYPE_APPLICATION)
 
 static void
-fcitx_config_wizard_app_finalize (GObject *object)
+fcitx_config_wizard_app_activate (GApplication *application)
 {
-    G_OBJECT_CLASS (fcitx_config_wizard_app_parent_class)->finalize (object);
+    GList* list = gtk_application_get_windows(GTK_APPLICATION(application));
+    if (list) {
+        gtk_window_present(GTK_WINDOW(list->data));
+    } else {
+        GtkWidget *window;
+        window = create_assistant();
+        gtk_application_add_window(GTK_APPLICATION(application), GTK_WINDOW(window));
+        gtk_widget_show_all(GTK_WIDGET(window));
+    }
 }
 
 static void
-fcitx_config_wizard_app_init (FcitxConfigWizardApp *app)
+fcitx_config_wizard_app_finalize (GObject *object)
 {
-    fcitx_config_wizard_gtk3_register_resource();
-    g_resources_register (fcitx_config_wizard_gtk3_get_resource ());
+    G_OBJECT_CLASS(fcitx_config_wizard_app_parent_class)->finalize(object);
 }
 
-int fcitx_config_wizard_app_handle_command_line (GApplication *application,
-                                          GApplicationCommandLine   *command_line,
-                                          gpointer                   user_data
-                                         )
+static void
+fcitx_config_wizard_app_init(FcitxConfigWizardApp *app)
+{
+    fcitx_config_wizard_gtk3_register_resource();
+    g_resources_register(fcitx_config_wizard_gtk3_get_resource());
+}
+
+int 
+fcitx_config_wizard_app_handle_command_line(GApplication *application,
+    GApplicationCommandLine *command_line, gpointer user_data)
 {
     int argc;
     gchar** argv = g_application_command_line_get_arguments(command_line, &argc);
-    g_application_activate(G_APPLICATION (application));
-    GList* list = gtk_application_get_windows (GTK_APPLICATION(application));
+    g_application_activate(G_APPLICATION(application));
+    GList* list = gtk_application_get_windows(GTK_APPLICATION(application));
     if (list) {
         //FcitxWizardMainWindow* mainWindow = FCITX_WIZARD_MAIN_WINDOW (list->data);
-        /*
-        FcitxAddon* addon = NULL;
-        if (argc >= 2 && argv[1])
-            addon = find_addon_by_name(mainWindow->addons, argv[1]);
-        if (addon) {
-            GtkWidget* dialog = fcitx_config_dialog_new(addon, GTK_WINDOW(mainWindow));
-            if (dialog)
-                gtk_widget_show_all(GTK_WIDGET(dialog));
-        }
-        */
+        //TODO:
     }
 
     g_strfreev(argv);
@@ -95,29 +80,30 @@ int fcitx_config_wizard_app_handle_command_line (GApplication *application,
 }
 
 static void
-fcitx_config_wizard_app_class_init (FcitxConfigWizardAppClass *klass)
+fcitx_config_wizard_app_class_init(FcitxConfigWizardAppClass *klass)
 {
-    G_OBJECT_CLASS (klass)->finalize= fcitx_config_wizard_app_finalize;
+    G_OBJECT_CLASS(klass)->finalize = fcitx_config_wizard_app_finalize;
 
-    G_APPLICATION_CLASS (klass)->activate = fcitx_config_wizard_app_activate;
+    G_APPLICATION_CLASS(klass)->activate = fcitx_config_wizard_app_activate;
 }
 
 FcitxConfigWizardApp *
-fcitx_config_wizard_app_new (void)
+fcitx_config_wizard_app_new(void)
 {
 #if !GLIB_CHECK_VERSION(2, 35, 1)
     g_type_init();
 #endif
 
-    FcitxConfigWizardApp* app = g_object_new (fcitx_config_wizard_app_get_type (),
-                         "application-id", "org.fcitx.FcitxConfigWizardGtk3",
-                         "flags", G_APPLICATION_HANDLES_COMMAND_LINE,
-                         NULL);
-    g_signal_connect(app, "command-line", (GCallback)fcitx_config_wizard_app_handle_command_line, NULL);
+    FcitxConfigWizardApp* app = g_object_new(fcitx_config_wizard_app_get_type(),
+        "application-id", "org.fcitx.FcitxConfigWizardGtk3",
+        "flags", G_APPLICATION_HANDLES_COMMAND_LINE,
+        NULL);
+
+    g_signal_connect(app, "command-line", 
+        (GCallback)fcitx_config_wizard_app_handle_command_line, NULL);
+    
     return app;
 }
-
-int wizardflag;//gqk_lenky
 
 boolean 
 fcitx_config_wizard_process_option(int argc, char* argv[])
@@ -132,7 +118,7 @@ fcitx_config_wizard_process_option(int argc, char* argv[])
     while ((c = getopt_long(argc, argv, "", longOptions, &optionIndex)) != EOF) {
         switch (c) {
         case 'W':
-            wizardflag = 1;
+            //wizardflag = 1;
             break;
         default:
             return false;
@@ -171,9 +157,9 @@ main(int argc, char **argv)
     }
 
     fcitx_config_wizard_process_option(argc, argv);
-    status = g_application_run (G_APPLICATION (app), argc, argv);
+    status = g_application_run(G_APPLICATION(app), argc, argv);
 
-    g_object_unref (app);
+    g_object_unref(app);
 
     return status;
 }

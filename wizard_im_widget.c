@@ -1,4 +1,4 @@
-/***************************************************************************
+ /***************************************************************************
  *   Copyright (C) 2010~2012 by CSSlayer                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -20,24 +20,13 @@
 #include <fcitx-utils/utils.h>
 #include <fcitx/module/dbus/dbusstuff.h>
 #include <fcitx/module/ipc/ipc.h>
-
 #include "common.h"
-//#include "im_widget.h"
 #include "wizard_im_widget.h"
 #include "gdm-languages.h"
 #include "im_dialog.h"
 #include "config_widget.h"
-//#include "main_window.h"
-//#include "im_config_dialog.h"
 
 G_DEFINE_TYPE(FcitxWizardImWidget, fcitx_wizard_im_widget, GTK_TYPE_BOX)
-
-enum {
-    AVAIL_TREE_IM_STRING,
-    AVAIL_TREE_IM,
-    AVAIL_TREE_LANG,
-    AVAIL_N_COLUMNS
-};
 
 enum {
     IM_LIST_IM_STRING,
@@ -61,19 +50,11 @@ static void _fcitx_wizard_im_widget_addim_button_clicked(GtkButton* button, gpoi
 static void _fcitx_wizard_im_widget_delim_button_clicked(GtkButton* button, gpointer user_data);
 static void _fcitx_wizard_im_widget_moveup_button_clicked(GtkButton* button, gpointer user_data);
 static void _fcitx_wizard_im_widget_movedown_button_clicked(GtkButton* button, gpointer user_data);
-//static void _fcitx_wizard_im_widget_configure_button_clicked(GtkButton* button, gpointer user_data);
-//static void _fcitx_wizard_im_widget_default_layout_button_clicked(GtkButton* button, gpointer user_data);
 static void _fcitx_wizard_im_widget_imlist_changed_cb(FcitxInputMethod* im, gpointer user_data);
 
-//static void _fcitx_wizard_im_widget_row_activated(GtkTreeView       *tree_view,
-//                                           GtkTreePath       *path,
-//                                           GtkTreeViewColumn *column,
-//                                           gpointer           user_data);
-
 static GObject *
-fcitx_wizard_im_widget_constructor   (GType                  gtype,
-                               guint                  n_properties,
-                               GObjectConstructParam *properties);
+fcitx_wizard_im_widget_constructor(GType gtype,
+     guint n_properties, GObjectConstructParam *properties);
 
 static void
 fcitx_wizard_im_widget_class_init(FcitxWizardImWidgetClass *klass)
@@ -83,99 +64,105 @@ fcitx_wizard_im_widget_class_init(FcitxWizardImWidgetClass *klass)
     gobject_class->constructor = fcitx_wizard_im_widget_constructor;
 }
 
-
 static GObject *
-fcitx_wizard_im_widget_constructor   (GType                  gtype,
-                               guint                  n_properties,
-                               GObjectConstructParam *properties)
+fcitx_wizard_im_widget_constructor(GType gtype,
+    guint n_properties, GObjectConstructParam *properties)
 {
     GObject *obj;
     FcitxWizardImWidget *self;
     GtkWidget *widget;
 
-    obj = G_OBJECT_CLASS (fcitx_wizard_im_widget_parent_class)->constructor (gtype, n_properties, properties);
+    obj = G_OBJECT_CLASS(fcitx_wizard_im_widget_parent_class)->constructor(gtype, 
+        n_properties, properties);
 
-    self = FCITX_WIZARD_IM_WIDGET (obj);
+    self = FCITX_WIZARD_IM_WIDGET(obj);
 
-    widget = GTK_WIDGET(gtk_builder_get_object (self->builder,
-                                                "im_widget"));
+    widget = GTK_WIDGET(gtk_builder_get_object(self->builder, "im_widget"));
 
-    gtk_widget_reparent (widget, GTK_WIDGET(self));
+    gtk_widget_reparent(widget, GTK_WIDGET(self));
 
     _fcitx_wizard_im_widget_connect(self);
 
   return obj;
 }
-//gqk
+
 static void
 fcitx_wizard_im_widget_init(FcitxWizardImWidget* self)
 {
     self->builder = gtk_builder_new();
-    gtk_builder_add_from_resource(self->builder, "/org/fcitx/fcitx-config-gtk3/wizard_im_widget.ui", NULL);
+    gtk_builder_add_from_resource(self->builder, 
+        "/org/fcitx/fcitx-config-gtk3/wizard_im_widget.ui", NULL);
 
 #define _GET_OBJECT(NAME) \
-    self->NAME = (typeof(self->NAME)) gtk_builder_get_object(self->builder, #NAME);
+    self->NAME = (typeof(self->NAME))gtk_builder_get_object(self->builder, #NAME)
 
-    _GET_OBJECT(imstore)
-    _GET_OBJECT(imview)
-    _GET_OBJECT(addimbutton)
-    _GET_OBJECT(delimbutton)
-    _GET_OBJECT(moveupbutton)
-    _GET_OBJECT(movedownbutton)
-//    _GET_OBJECT(configurebutton)
-//    _GET_OBJECT(default_layout_button)
-    _GET_OBJECT(scrolledwindow)
-    _GET_OBJECT(toolbar)
+    _GET_OBJECT(imstore);
+    _GET_OBJECT(imview);
+    _GET_OBJECT(addimbutton);
+    _GET_OBJECT(delimbutton);
+    _GET_OBJECT(moveupbutton);
+    _GET_OBJECT(movedownbutton);
+    _GET_OBJECT(scrolledwindow);
+    _GET_OBJECT(toolbar);
 
-    GtkTreeSelection* selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self->imview));
+    GtkTreeSelection* selection = gtk_tree_view_get_selection(
+        GTK_TREE_VIEW(self->imview));
     g_signal_connect(G_OBJECT(selection), "changed",
-                     G_CALLBACK(_fcitx_wizard_im_widget_im_selection_changed), self);
-
+                     G_CALLBACK(_fcitx_wizard_im_widget_im_selection_changed), 
+                     self);
 
     GtkStyleContext* context;
-    context = gtk_widget_get_style_context (self->scrolledwindow);
-    gtk_style_context_set_junction_sides (context, GTK_JUNCTION_BOTTOM);
-    context = gtk_widget_get_style_context (self->toolbar);
-    gtk_style_context_set_junction_sides (context, GTK_JUNCTION_TOP);
-    gtk_style_context_add_class (context, "inline-toolbar");
+    context = gtk_widget_get_style_context(self->scrolledwindow);
+    gtk_style_context_set_junction_sides(context, GTK_JUNCTION_BOTTOM);
+    context = gtk_widget_get_style_context(self->toolbar);
+    gtk_style_context_set_junction_sides(context, GTK_JUNCTION_TOP);
+    gtk_style_context_add_class(context, "inline-toolbar");
 
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->addimbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("list-add-symbolic"), GTK_ICON_SIZE_BUTTON));
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->delimbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("list-remove-symbolic"), GTK_ICON_SIZE_BUTTON));
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->moveupbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("go-up-symbolic"), GTK_ICON_SIZE_BUTTON));
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->movedownbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("go-down-symbolic"), GTK_ICON_SIZE_BUTTON));
-//    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->configurebutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("preferences-system-symbolic"), GTK_ICON_SIZE_BUTTON));
-//    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->default_layout_button), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("input-keyboard-symbolic"), GTK_ICON_SIZE_BUTTON));
+    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->addimbutton), 
+        gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks(
+        "list-add-symbolic"), GTK_ICON_SIZE_BUTTON));
+    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->delimbutton), 
+        gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks(
+        "list-remove-symbolic"), GTK_ICON_SIZE_BUTTON));
+    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->moveupbutton), 
+        gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks(
+        "go-up-symbolic"), GTK_ICON_SIZE_BUTTON));
+    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->movedownbutton), 
+        gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks(
+        "go-down-symbolic"), GTK_ICON_SIZE_BUTTON));
 
-    g_signal_connect(G_OBJECT(self->addimbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_addim_button_clicked), self);
-    g_signal_connect(G_OBJECT(self->delimbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_delim_button_clicked), self);
-    g_signal_connect(G_OBJECT(self->moveupbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_moveup_button_clicked), self);
-    g_signal_connect(G_OBJECT(self->movedownbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_movedown_button_clicked), self);
-//    g_signal_connect(G_OBJECT(self->configurebutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_configure_button_clicked), self);
-//    g_signal_connect(G_OBJECT(self->default_layout_button), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_default_layout_button_clicked), self);
-//    g_signal_connect(G_OBJECT(self->imview), "row-activated", G_CALLBACK(_fcitx_wizard_im_widget_row_activated), self);
+    g_signal_connect(G_OBJECT(self->addimbutton), "clicked", 
+        G_CALLBACK(_fcitx_wizard_im_widget_addim_button_clicked), self);
+    g_signal_connect(G_OBJECT(self->delimbutton), "clicked", 
+        G_CALLBACK(_fcitx_wizard_im_widget_delim_button_clicked), self);
+    g_signal_connect(G_OBJECT(self->moveupbutton), "clicked", 
+        G_CALLBACK(_fcitx_wizard_im_widget_moveup_button_clicked), self);
+    g_signal_connect(G_OBJECT(self->movedownbutton), "clicked", 
+        G_CALLBACK(_fcitx_wizard_im_widget_movedown_button_clicked), self);
 }
 
 GtkWidget*
 fcitx_wizard_im_widget_new(void)
 {
-    FcitxWizardImWidget* widget =
-        g_object_new(FCITX_TYPE_WIZARD_IM_WIDGET,
+    FcitxWizardImWidget* widget = g_object_new(FCITX_TYPE_WIZARD_IM_WIDGET,
                      NULL);
 
     return GTK_WIDGET(widget);
 }
 
-void fcitx_wizard_im_widget_dispose(GObject* object)
+void 
+fcitx_wizard_im_widget_dispose(GObject* object)
 {
     FcitxWizardImWidget* self = FCITX_WIZARD_IM_WIDGET(object);
     if (self->array) {
-        g_ptr_array_set_free_func(self->array, (GDestroyNotify) fcitx_im_item_free);
+        g_ptr_array_set_free_func(self->array, (GDestroyNotify)fcitx_im_item_free);
         g_ptr_array_free(self->array, FALSE);
         self->array = NULL;
     }
 
     if (self->improxy) {
-        g_signal_handlers_disconnect_by_func(self->improxy, G_CALLBACK(_fcitx_wizard_im_widget_imlist_changed_cb), self);
+        g_signal_handlers_disconnect_by_func(self->improxy, 
+            G_CALLBACK(_fcitx_wizard_im_widget_imlist_changed_cb), self);
         g_object_unref(self->improxy);
         self->improxy = NULL;
     }
@@ -185,39 +172,43 @@ void fcitx_wizard_im_widget_dispose(GObject* object)
         self->focus = NULL;
     }
 
-    G_OBJECT_CLASS (fcitx_wizard_im_widget_parent_class)->dispose (object);
+    G_OBJECT_CLASS(fcitx_wizard_im_widget_parent_class)->dispose(object);
 }
 
-void _fcitx_wizard_im_widget_imlist_changed_cb(FcitxInputMethod* im, gpointer user_data)
+void 
+_fcitx_wizard_im_widget_imlist_changed_cb(FcitxInputMethod* im, 
+    gpointer user_data)
 {
     FcitxWizardImWidget* self = user_data;
     _fcitx_wizard_im_widget_load(self);
 }
 
-void _fcitx_wizard_im_widget_connect(FcitxWizardImWidget* self)
+void 
+_fcitx_wizard_im_widget_connect(FcitxWizardImWidget* self)
 {
     GError* error = NULL;
     self->improxy = fcitx_input_method_new(G_BUS_TYPE_SESSION,
-                                          G_DBUS_PROXY_FLAGS_NONE,
-                                          fcitx_utils_get_display_number(),
-                                          NULL,
-                                          &error
-                                         );
+        G_DBUS_PROXY_FLAGS_NONE, fcitx_utils_get_display_number(),
+        NULL, &error);
+    
     if (self->improxy == NULL) {
         g_error_free(error);
         return;
     }
-    g_signal_connect(self->improxy, "imlist-changed", G_CALLBACK(_fcitx_wizard_im_widget_imlist_changed_cb), self);
+    
+    g_signal_connect(self->improxy, "imlist-changed", 
+        G_CALLBACK(_fcitx_wizard_im_widget_imlist_changed_cb), self);
 
     _fcitx_wizard_im_widget_load(self);
 }
 
-void _fcitx_wizard_im_widget_load(FcitxWizardImWidget* self)
+void 
+_fcitx_wizard_im_widget_load(FcitxWizardImWidget* self)
 {
     gtk_list_store_clear(self->imstore);
 
     if (self->array) {
-        g_ptr_array_set_free_func(self->array, (GDestroyNotify) fcitx_im_item_free);
+        g_ptr_array_set_free_func(self->array, (GDestroyNotify)fcitx_im_item_free);
         g_ptr_array_free(self->array, FALSE);
         self->array = NULL;
     }
@@ -229,19 +220,24 @@ void _fcitx_wizard_im_widget_load(FcitxWizardImWidget* self)
         foreach_ct context;
         context.widget = self;
         context.flag = FALSE;
-        g_ptr_array_foreach(self->array, _fcitx_wizard_inputmethod_insert_foreach_cb, &context);
+        g_ptr_array_foreach(self->array, _fcitx_wizard_inputmethod_insert_foreach_cb, 
+            &context);
 
-        if (context.flag)
-            gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(self->imview)), &context.iter);
+        if (context.flag) {
+            gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(
+                self->imview)), &context.iter);
+        }
+        
         g_free(self->focus);
         self->focus = NULL;
 
-        _fcitx_wizard_im_widget_im_selection_changed(gtk_tree_view_get_selection(GTK_TREE_VIEW(self->imview)), self);
+        _fcitx_wizard_im_widget_im_selection_changed(gtk_tree_view_get_selection(
+            GTK_TREE_VIEW(self->imview)), self);
     }
 }
 
-void _fcitx_wizard_inputmethod_insert_foreach_cb(gpointer data,
-        gpointer user_data)
+void 
+_fcitx_wizard_inputmethod_insert_foreach_cb(gpointer data, gpointer user_data)
 {
     foreach_ct* context = user_data;
     FcitxIMItem* item = data;
@@ -254,21 +250,28 @@ void _fcitx_wizard_inputmethod_insert_foreach_cb(gpointer data,
         gtk_list_store_set(self->imstore, &iter, IM_LIST_IM_STRING, item->name, -1);
         gtk_list_store_set(self->imstore, &iter, IM_LIST_IM, item, -1);
         char* lang = NULL;
-        if (strlen(item->langcode) != 0)
+        
+        if (strlen(item->langcode) != 0) {
             lang = gdm_get_language_from_name(item->langcode, NULL);
+        }
+        
         if (!lang) {
             if (strcmp(item->langcode, "*") == 0)
                 lang = g_strdup_printf("%s", _("Unknown"));
             else
                 lang = g_strdup_printf("%s", _("Unknown"));
         }
+        
         gtk_list_store_set(self->imstore, &iter, IM_LIST_IM_LANGUAGE, lang, -1);
-        if (self->focus == NULL || strcmp(self->focus, item->unique_name) == 0)
+        if (self->focus == NULL || strcmp(self->focus, item->unique_name) == 0) {
             context->iter = iter;
+        }
     }
 }
 
-void _fcitx_wizard_im_widget_im_selection_changed(GtkTreeSelection *selection, gpointer data)
+void 
+_fcitx_wizard_im_widget_im_selection_changed(GtkTreeSelection *selection, 
+    gpointer data)
 {
     FcitxWizardImWidget* self = data;
     GtkTreeView *treeView = gtk_tree_selection_get_tree_view(selection);
@@ -277,11 +280,9 @@ void _fcitx_wizard_im_widget_im_selection_changed(GtkTreeSelection *selection, g
 
     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
         gtk_widget_set_sensitive(GTK_WIDGET(self->delimbutton), TRUE);
-//        gtk_widget_set_sensitive(GTK_WIDGET(self->configurebutton), TRUE);
+        
         GtkTreePath* path = gtk_tree_model_get_path(model, &iter);
-
         gint* ind = gtk_tree_path_get_indices(path);
-
         gint n = gtk_tree_model_iter_n_children(model, NULL);
 
         if (ind) {
@@ -292,22 +293,27 @@ void _fcitx_wizard_im_widget_im_selection_changed(GtkTreeSelection *selection, g
         gtk_tree_path_free(path);
     } else {
         gtk_widget_set_sensitive(GTK_WIDGET(self->delimbutton), FALSE);
-//        gtk_widget_set_sensitive(GTK_WIDGET(self->configurebutton), FALSE);
     }
 }
 
 
-void _fcitx_wizard_im_widget_addim_button_clicked(GtkButton* button, gpointer user_data)
+void 
+_fcitx_wizard_im_widget_addim_button_clicked(GtkButton* button, 
+    gpointer user_data)
 {
     FcitxWizardImWidget* self = user_data;
-    GtkWidget* dialog = fcitx_im_dialog_new(GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET(self))));
+    GtkWidget* dialog = fcitx_im_dialog_new(GTK_WINDOW(
+        gtk_widget_get_toplevel(GTK_WIDGET(self))));
+    
     gtk_widget_show_all(dialog);
 
     g_free(self->focus);
     self->focus = NULL;
 }
 
-void _fcitx_wizard_im_widget_delim_button_clicked(GtkButton* button, gpointer user_data)
+void 
+_fcitx_wizard_im_widget_delim_button_clicked(GtkButton* button, 
+    gpointer user_data)
 {
     FcitxWizardImWidget* self = user_data;
     GtkWidget *treeView = self->imview;
@@ -317,10 +323,7 @@ void _fcitx_wizard_im_widget_delim_button_clicked(GtkButton* button, gpointer us
 
     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
         FcitxIMItem* item = NULL;
-        gtk_tree_model_get(model,
-                           &iter,
-                           IM_LIST_IM, &item,
-                           -1);
+        gtk_tree_model_get(model, &iter, IM_LIST_IM, &item, -1);
         item->enable = false;
 
         g_free(self->focus);
@@ -328,10 +331,11 @@ void _fcitx_wizard_im_widget_delim_button_clicked(GtkButton* button, gpointer us
 
         fcitx_input_method_set_imlist(self->improxy, self->array);
     }
-
 }
 
-void _fcitx_wizard_im_widget_moveup_button_clicked(GtkButton* button, gpointer user_data)
+void 
+_fcitx_wizard_im_widget_moveup_button_clicked(GtkButton* button, 
+    gpointer user_data)
 {
     FcitxWizardImWidget* self = user_data;
     GtkWidget *treeView = self->imview;
@@ -341,10 +345,7 @@ void _fcitx_wizard_im_widget_moveup_button_clicked(GtkButton* button, gpointer u
 
     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
         FcitxIMItem* item = NULL;
-        gtk_tree_model_get(model,
-                           &iter,
-                           IM_LIST_IM, &item,
-                           -1);
+        gtk_tree_model_get(model, &iter, IM_LIST_IM, &item, -1);
 
         int i;
         int switch_index = self->array->len;
@@ -369,7 +370,9 @@ void _fcitx_wizard_im_widget_moveup_button_clicked(GtkButton* button, gpointer u
     }
 }
 
-void _fcitx_wizard_im_widget_movedown_button_clicked(GtkButton* button, gpointer user_data)
+void 
+_fcitx_wizard_im_widget_movedown_button_clicked(GtkButton* button, 
+    gpointer user_data)
 {
     FcitxWizardImWidget* self = user_data;
     GtkWidget *treeView = self->imview;
@@ -379,10 +382,7 @@ void _fcitx_wizard_im_widget_movedown_button_clicked(GtkButton* button, gpointer
 
     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
         FcitxIMItem* item = NULL;
-        gtk_tree_model_get(model,
-                           &iter,
-                           IM_LIST_IM, &item,
-                           -1);
+        gtk_tree_model_get(model, &iter, IM_LIST_IM, &item, -1);
 
         int i;
         int switch_index = -1;
@@ -406,72 +406,4 @@ void _fcitx_wizard_im_widget_movedown_button_clicked(GtkButton* button, gpointer
         }
     }
 }
-
-/*
-void _fcitx_wizard_im_widget_default_layout_button_clicked(GtkButton* button, gpointer user_data)
-{
-    FcitxWizardImWidget* self = user_data;
-    FcitxMainWindow* mainwindow = FCITX_MAIN_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET(self)));
-    do {
-        if (!mainwindow)
-            break;
-
-        GtkWidget* dialog = fcitx_im_config_dialog_new(GTK_WINDOW(mainwindow), NULL, "default");
-        if (dialog)
-            gtk_widget_show_all(GTK_WIDGET(dialog));
-    } while(0);
-}
-
-static void _fcitx_wizard_im_widget_configure_im(FcitxWizardImWidget* self, FcitxIMItem* item)
-{
-    gchar* addon_name = fcitx_input_method_get_im_addon(self->improxy, item->unique_name);
-    FcitxMainWindow* mainwindow = FCITX_MAIN_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET(self)));
-    do {
-        if (!mainwindow)
-            break;
-
-        FcitxAddon* addon = find_addon_by_name(mainwindow->addons, addon_name);
-        if (!addon)
-            break;
-
-        GtkWidget* dialog = fcitx_im_config_dialog_new(GTK_WINDOW(mainwindow), addon, item->unique_name);
-        if (dialog)
-            gtk_widget_show_all(GTK_WIDGET(dialog));
-    } while(0);
-    g_free(addon_name);
-}
-
-void _fcitx_wizard_im_widget_configure_button_clicked(GtkButton* button, gpointer user_data)
-{
-    FcitxWizardImWidget* self = user_data;
-    GtkWidget *treeView = self->imview;
-    GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeView));
-    GtkTreeSelection* selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self->imview));
-    GtkTreeIter iter;
-
-    if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
-        FcitxIMItem* item = NULL;
-        gtk_tree_model_get(model,
-                           &iter,
-                           IM_LIST_IM, &item,
-                           -1);
-
-        _fcitx_im_widget_configure_im((FcitxWizardImWidget*)user_data, item);
-    }
-}
-
-void _fcitx_wizard_im_widget_row_activated(GtkTreeView* tree_view, GtkTreePath* path, GtkTreeViewColumn* column, gpointer user_data)
-{
-    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
-    GtkTreeIter iter;
-    if (gtk_tree_model_get_iter(model, &iter, path)) {
-        FcitxIMItem* item = NULL;
-        gtk_tree_model_get(model, &iter,
-                           IM_LIST_IM, &item,
-                           -1);
-
-        _fcitx_im_widget_configure_im((FcitxWizardImWidget*)user_data, item);
-    }
-}
-*/
 
