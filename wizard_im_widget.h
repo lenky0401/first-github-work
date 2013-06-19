@@ -29,19 +29,19 @@ G_BEGIN_DECLS
 #define FCITX_TYPE_WIZARD_IM_WIDGET fcitx_wizard_im_widget_get_type()
 
 #define FCITX_WIZARD_IM_WIDGET(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST ((obj), FCITX_TYPE_WIZARD_IM_WIDGET, FcitxWizardImWidget))
+    (G_TYPE_CHECK_INSTANCE_CAST((obj), FCITX_TYPE_WIZARD_IM_WIDGET, FcitxWizardImWidget))
 
 #define FCITX_WIZARD_IM_WIDGET_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_CAST ((klass), FCITX_TYPE_WIZARD_IM_WIDGET, FcitxWizardImWidgetClass))
+    (G_TYPE_CHECK_CLASS_CAST((klass), FCITX_TYPE_WIZARD_IM_WIDGET, FcitxWizardImWidgetClass))
 
 #define FCITX_IS_WIZARD_IM_WIDGET(obj) \
-    (G_TYPE_CHECK_INSTANCE_TYPE ((obj), FCITX_TYPE_WIZARD_IM_WIDGET))
+    (G_TYPE_CHECK_INSTANCE_TYPE((obj), FCITX_TYPE_WIZARD_IM_WIDGET))
 
 #define FCITX_IS_WIZARD_IM_WIDGET_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_TYPE ((klass), FCITX_TYPE_WIZARD_IM_WIDGET))
+    (G_TYPE_CHECK_CLASS_TYPE((klass), FCITX_TYPE_WIZARD_IM_WIDGET))
 
 #define FCITX_WIZARD_IM_WIDGET_GET_CLASS(obj) \
-    (G_TYPE_INSTANCE_GET_CLASS ((obj), FCITX_TYPE_WIZARD_IM_WIDGET, FcitxWizardImWidgetClass))
+    (G_TYPE_INSTANCE_GET_CLASS((obj), FCITX_TYPE_WIZARD_IM_WIDGET, FcitxWizardImWidgetClass))
 
 typedef struct _FcitxWizardImWidget FcitxWizardImWidget;
 typedef struct _FcitxWizardImWidgetClass FcitxWizardImWidgetClass;
@@ -57,8 +57,6 @@ struct _FcitxWizardImWidget {
     GtkWidget* delimbutton;
     GtkWidget* moveupbutton;
     GtkWidget* movedownbutton;
-//    GtkWidget* configurebutton;
-//    GtkWidget* default_layout_button;
     GtkWidget* scrolledwindow;
     GtkWidget* toolbar;
     GtkBuilder* builder;

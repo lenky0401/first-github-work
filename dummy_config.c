@@ -69,7 +69,7 @@ void dummy_config_load(DummyConfig* self, FILE* fp)
             }
         }
     }
-    else {
+    else {//gqk bug memory leak
         self->config.configFile = FcitxConfigParseIniFp(fp, self->config.configFile);
     }
 

@@ -28,23 +28,69 @@
 #include "config_widget.h"
 //#include "main_window.h"
 //#include "im_config_dialog.h"
+#include "config_widget.h"
+#include "keygrab.h"
+#include "sub_config_widget.h"
+#include "configdesc.h"
+#include "dummy_config.h"
+
+enum {
+    CONFIG_WIDGET_CHANGED,
+    LAST_SIGNAL
+};
+
+enum {
+    PROP_0,
+
+    PROP_CONFIG_DESC,
+    PROP_PREFIX,
+    PROP_NAME,
+    PROP_SUBCONFIG
+};
+static gint config_widget_signals[LAST_SIGNAL] = { 0 };
 
 G_DEFINE_TYPE(FcitxWizardSkinWidget, fcitx_wizard_skin_widget, GTK_TYPE_BOX)
 
-static void fcitx_wizard_skin_widget_dispose(GObject* object);
+static void
+fcitx_wizard_skin_widget_set_property(GObject *gobject,
+    guint prop_id, const GValue *value, GParamSpec *pspec);
+
+static void 
+fcitx_wizard_skin_widget_dispose(GObject* object);
 
 
 static GObject *
-fcitx_wizard_skin_widget_constructor   (GType                  gtype,
-                               guint                  n_properties,
-                               GObjectConstructParam *properties);
+fcitx_wizard_skin_widget_constructor(GType gtype,
+    guint n_properties, GObjectConstructParam *properties);
 
 static void
 fcitx_wizard_skin_widget_class_init(FcitxWizardSkinWidgetClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+    gobject_class->set_property = fcitx_wizard_skin_widget_set_property;
     gobject_class->dispose = fcitx_wizard_skin_widget_dispose;
     gobject_class->constructor = fcitx_wizard_skin_widget_constructor;
+
+    g_object_class_install_property(gobject_class, PROP_CONFIG_DESC,
+        g_param_spec_pointer("cfdesc", "Configuration Description",
+        "Configuration Description for this widget", 
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+
+    g_object_class_install_property(gobject_class, PROP_PREFIX,
+        g_param_spec_string("prefix", "Prefix of path",
+        "Prefix of configuration path", NULL,
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+
+    g_object_class_install_property(gobject_class, PROP_NAME,
+        g_param_spec_string("name", "File name",
+        "File name of configuration file", NULL,
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+
+    g_object_class_install_property(gobject_class,
+        PROP_SUBCONFIG, g_param_spec_string("subconfig",
+        "subconfig", "subconfig", NULL,
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+    
 }
 
 
@@ -73,7 +119,6 @@ static void
 fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
 {
     GError *error = NULL;
-
     self->builder = gtk_builder_new();
     gtk_builder_add_from_resource(self->builder, "/org/fcitx/fcitx-config-gtk3/wizard_skin_widget.ui", NULL);
 
@@ -85,7 +130,6 @@ fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
     _GET_OBJECT(dark_skin)
 
     gtk_widget_set_size_request(GTK_WIDGET(self->default_skin), 100, 36);
-//    gtk_button_set_label(GTK_BUTTON(self->default_skin), _("Show Advance Option"));
     gtk_button_set_label(GTK_BUTTON(self->default_skin), _("默认"));
 
     gtk_widget_set_size_request(GTK_WIDGET(self->classic_skin), 100, 36);
@@ -110,6 +154,8 @@ fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
     gtk_image_set_from_pixbuf(GTK_IMAGE(self->dark_skin_img), pixbuf);
     g_object_unref(pixbuf);
 
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->dark_skin), TRUE);
+
 /*
     gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->addimbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("list-add-symbolic"), GTK_ICON_SIZE_BUTTON));
     gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->delimbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("list-remove-symbolic"), GTK_ICON_SIZE_BUTTON));
@@ -128,12 +174,38 @@ fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
 */
 }
 
-GtkWidget*
-fcitx_wizard_skin_widget_new(void)
+static void
+fcitx_wizard_skin_widget_setup_ui(FcitxWizardSkinWidget *self)
 {
-    FcitxWizardSkinWidget* widget =
-        g_object_new(FCITX_TYPE_WIZARD_SKIN_WIDGET,
-                     NULL);
+    FILE *fp;
+
+    if (self->cfdesc) {
+        bindtextdomain(self->cfdesc->domain, LOCALEDIR);
+        bind_textdomain_codeset(self->cfdesc->domain, "UTF-8");
+
+        self->config = dummy_config_new(self->cfdesc);
+        fp = FcitxXDGGetFileWithPrefix(self->prefix, self->name, "r", NULL);
+        if (fp == NULL) {
+            //TODO: echo err msg
+            return;
+        }
+
+        dummy_config_load(self->config, fp);
+        dummy_config_sync(self->config);
+
+        fclose(fp);
+    }
+}
+
+GtkWidget*
+fcitx_wizard_skin_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix, 
+    const gchar* name, const gchar* subconfig)
+{
+    FcitxWizardSkinWidget* widget = g_object_new(FCITX_TYPE_WIZARD_SKIN_WIDGET, 
+        "cfdesc", cfdesc, "prefix", 
+        prefix, "name", name, "subconfig", subconfig, NULL);
+
+    fcitx_wizard_skin_widget_setup_ui(widget);
 
     return GTK_WIDGET(widget);
 }
@@ -141,5 +213,35 @@ fcitx_wizard_skin_widget_new(void)
 void fcitx_wizard_skin_widget_dispose(GObject* object)
 {
     G_OBJECT_CLASS (fcitx_wizard_skin_widget_parent_class)->dispose (object);
+}
+
+static void
+fcitx_wizard_skin_widget_set_property(GObject *gobject,
+    guint prop_id, const GValue *value, GParamSpec *pspec)
+{
+    FcitxWizardSkinWidget* config_widget = FCITX_WIZARD_SKIN_WIDGET(gobject);
+    switch (prop_id) {
+    case PROP_CONFIG_DESC:
+        config_widget->cfdesc = g_value_get_pointer(value);
+        break;
+    case PROP_PREFIX:
+        if (config_widget->prefix)
+            g_free(config_widget->prefix);
+        config_widget->prefix = g_strdup(g_value_get_string(value));
+        break;
+    case PROP_NAME:
+        if (config_widget->name)
+            g_free(config_widget->name);
+        config_widget->name = g_strdup(g_value_get_string(value));
+        break;
+    case PROP_SUBCONFIG:
+        if (config_widget->parser)
+            sub_config_parser_free(config_widget->parser);
+        config_widget->parser = sub_config_parser_new(g_value_get_string(value));
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, prop_id, pspec);
+        break;
+    }
 }
 

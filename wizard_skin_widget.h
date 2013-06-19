@@ -23,6 +23,8 @@
 #include <gtk/gtk.h>
 #include <gio/gio.h>
 #include "fcitx-gclient/fcitxinputmethod.h"
+#include "sub_config_parser.h"
+#include "dummy_config.h"
 
 G_BEGIN_DECLS
 
@@ -48,6 +50,11 @@ typedef struct _FcitxWizardSkinWidgetClass FcitxWizardSkinWidgetClass;
 
 struct _FcitxWizardSkinWidget {
     GtkBox parent;
+    FcitxConfigFileDesc* cfdesc;
+    gchar* prefix;
+    gchar* name;
+    FcitxSubConfigParser* parser;
+    DummyConfig* config;
     GtkWidget* default_skin;
     GtkWidget* classic_skin;
     GtkWidget* dark_skin;
@@ -62,7 +69,9 @@ struct _FcitxWizardSkinWidgetClass {
 };
 
 GtkWidget*
-fcitx_wizard_skin_widget_new(void);
+fcitx_wizard_skin_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix, 
+    const gchar* name, const gchar* subconfig);
+
 
 G_END_DECLS
 

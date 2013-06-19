@@ -14,7 +14,10 @@ set(fcitx_config_wizard_gtk3_sources
   wizard_candidate_widget.c
   wizard_hotkey_widget.c
   gdm-languages.c
+  configdesc.c
   im_dialog.c
+  sub_config_parser.c
+  dummy_config.c
   keygrab.c
   fcitx-config-wizard-gtk3-resources.c
   )
@@ -26,6 +29,7 @@ set(fcitx_config_wizard_gtk3_headers
   wizard_hotkey_widget.H
   keygrab.h
   common.h
+  configdesc.h
   configdesc.h
   config_widget.h
   dummy_config.h

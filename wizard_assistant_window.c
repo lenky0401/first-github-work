@@ -17,6 +17,7 @@
 #include "wizard_candidate_widget.h"
 #include "wizard_hotkey_widget.h"
 #include "wizard_assistant_window.h"
+#include "configdesc.h"
 
 static void assistant_cancel(GtkAssistant * assistant, gpointer data);
 static void assistant_close(GtkAssistant * assistant, gpointer data);
@@ -38,7 +39,9 @@ GtkWidget *
 page_personality_skin(void)
 {
     GtkWidget* page_box;
-    GtkWidget* imwidget = fcitx_wizard_skin_widget_new();
+    GtkWidget* imwidget = fcitx_wizard_skin_widget_new(
+        get_config_desc("fcitx-classic-ui.desc"), "conf", 
+        "fcitx-classic-ui.config", "SkinType");
    
     page_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);
