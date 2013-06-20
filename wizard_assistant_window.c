@@ -65,7 +65,9 @@ GtkWidget *
 page_hotkey(void)
 {
     GtkWidget* page_box;
-    GtkWidget* imwidget = fcitx_wizard_hotkey_widget_new();
+    GtkWidget* imwidget = fcitx_wizard_hotkey_widget_new(
+        get_config_desc("config.desc"), "", 
+        "config", "HotKey");
    
     page_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);

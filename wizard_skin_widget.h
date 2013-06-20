@@ -27,7 +27,7 @@
 #include "dummy_config.h"
 
 G_BEGIN_DECLS
-;//gqk
+
 #define FCITX_TYPE_WIZARD_SKIN_WIDGET fcitx_wizard_skin_widget_get_type()
 
 #define FCITX_WIZARD_SKIN_WIDGET(obj) \
@@ -50,7 +50,8 @@ typedef struct _FcitxWizardSkinWidgetClass FcitxWizardSkinWidgetClass;
 
 typedef struct _FcitxWizardSkinConfData FcitxWizardSkinConfData;
 
-#define SKIN_TYPE_LEN 16
+#define SKIN_VALUE_MAX_LEN 32
+
 struct _FcitxWizardSkinConfData {
     char *skin_type;
 };

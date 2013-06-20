@@ -128,9 +128,9 @@ fcitx_wizard_skin_widget_skin_button_toggled(GtkWidget* button,
         return;
 
     if (self->conf_data.skin_type == NULL &&
-        (self->conf_data.skin_type = malloc(SKIN_TYPE_LEN)) == NULL)
+        (self->conf_data.skin_type = malloc(SKIN_VALUE_MAX_LEN)) == NULL)
     {
-        FcitxLog(WARNING, _("Malloc memory(%d) failed.\n"), SKIN_TYPE_LEN);
+        FcitxLog(WARNING, _("Malloc memory(%d) failed.\n"), SKIN_VALUE_MAX_LEN);
         return;
     }
 
@@ -142,16 +142,15 @@ fcitx_wizard_skin_widget_skin_button_toggled(GtkWidget* button,
         strcpy(self->conf_data.skin_type, "dark");
     }
 
+    FcitxConfigBindValue(self->config->config.configFile, "ClassicUI", "SkinType", 
+        &self->conf_data.skin_type, NULL, NULL);
+
     if ((fp = FcitxXDGGetFileUserWithPrefix(self->prefix, self->name, "w", NULL))
         == NULL) 
     {
         FcitxLog(WARNING, _("Open file(%s/%s) error.\n"));
         return;
     }
-
-    FcitxConfigBindValue(self->config->config.configFile, "ClassicUI", "SkinType", 
-        &self->conf_data.skin_type, NULL, NULL);
-
     FcitxConfigSaveConfigFileFp(fp, &self->config->config, self->cfdesc);
     fclose(fp);
 
