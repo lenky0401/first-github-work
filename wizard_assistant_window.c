@@ -53,7 +53,12 @@ GtkWidget *
 page_candidate_word(void)
 {
     GtkWidget* page_box;
-    GtkWidget* imwidget = fcitx_wizard_candidate_widget_new();
+    GtkWidget* imwidget = fcitx_wizard_candidate_widget_new(
+        get_config_desc("config.desc"), "", 
+        "config", "Output",
+        get_config_desc("fcitx-classic-ui.desc"), "conf", 
+        "fcitx-classic-ui.config", "CandidateUi"
+        );
    
     page_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);
