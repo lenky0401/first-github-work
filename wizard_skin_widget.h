@@ -27,7 +27,7 @@
 #include "dummy_config.h"
 
 G_BEGIN_DECLS
-
+;//gqk
 #define FCITX_TYPE_WIZARD_SKIN_WIDGET fcitx_wizard_skin_widget_get_type()
 
 #define FCITX_WIZARD_SKIN_WIDGET(obj) \
@@ -48,6 +48,13 @@ G_BEGIN_DECLS
 typedef struct _FcitxWizardSkinWidget FcitxWizardSkinWidget;
 typedef struct _FcitxWizardSkinWidgetClass FcitxWizardSkinWidgetClass;
 
+typedef struct _FcitxWizardSkinConfData FcitxWizardSkinConfData;
+
+#define SKIN_TYPE_LEN 16
+struct _FcitxWizardSkinConfData {
+    char *skin_type;
+};
+
 struct _FcitxWizardSkinWidget {
     GtkBox parent;
     FcitxConfigFileDesc* cfdesc;
@@ -62,6 +69,7 @@ struct _FcitxWizardSkinWidget {
     GtkWidget* classic_skin_img;
     GtkWidget* dark_skin_img;
     GtkBuilder* builder;
+    FcitxWizardSkinConfData conf_data;
 };
 
 struct _FcitxWizardSkinWidgetClass {

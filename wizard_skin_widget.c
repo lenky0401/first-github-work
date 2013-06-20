@@ -34,10 +34,10 @@
 #include "configdesc.h"
 #include "dummy_config.h"
 
-enum {
-    CONFIG_WIDGET_CHANGED,
-    LAST_SIGNAL
-};
+//enum {
+//    CONFIG_WIDGET_CHANGED,
+//    LAST_SIGNAL
+//};
 
 enum {
     PROP_0,
@@ -47,7 +47,7 @@ enum {
     PROP_NAME,
     PROP_SUBCONFIG
 };
-static gint config_widget_signals[LAST_SIGNAL] = { 0 };
+//static gint config_widget_signals[LAST_SIGNAL] = { 0 };
 
 G_DEFINE_TYPE(FcitxWizardSkinWidget, fcitx_wizard_skin_widget, GTK_TYPE_BOX)
 
@@ -114,11 +114,61 @@ fcitx_wizard_skin_widget_constructor   (GType                  gtype,
 
   return obj;
 }
-//gqk
+
+void 
+fcitx_wizard_skin_widget_skin_button_toggled(GtkWidget* button, 
+    gpointer user_data)
+{
+    FILE *fp;
+    FcitxWizardSkinWidget *self = user_data;
+    GError  *error;
+    gchar *argv[3];
+    
+    if(!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button)))
+        return;
+
+    if (self->conf_data.skin_type == NULL &&
+        (self->conf_data.skin_type = malloc(SKIN_TYPE_LEN)) == NULL)
+    {
+        FcitxLog(WARNING, _("Malloc memory(%d) failed.\n"), SKIN_TYPE_LEN);
+        return;
+    }
+
+    if (self->default_skin == button) {
+        strcpy(self->conf_data.skin_type, "default");
+    } else if (self->classic_skin == button) {
+        strcpy(self->conf_data.skin_type, "classic");
+    } else if (self->dark_skin == button) {
+        strcpy(self->conf_data.skin_type, "dark");
+    }
+
+    if ((fp = FcitxXDGGetFileUserWithPrefix(self->prefix, self->name, "w", NULL))
+        == NULL) 
+    {
+        FcitxLog(WARNING, _("Open file(%s/%s) error.\n"));
+        return;
+    }
+
+    FcitxConfigBindValue(self->config->config.configFile, "ClassicUI", "SkinType", 
+        &self->conf_data.skin_type, NULL, NULL);
+
+    FcitxConfigSaveConfigFileFp(fp, &self->config->config, self->cfdesc);
+    fclose(fp);
+
+    argv[0] = EXEC_PREFIX "/bin/fcitx-remote";
+    argv[1] = "-r";
+    argv[2] = 0;
+    g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error);
+    
+}
+
 static void
 fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
 {
     GError *error = NULL;
+
+    self->conf_data.skin_type = NULL;
+    
     self->builder = gtk_builder_new();
     gtk_builder_add_from_resource(self->builder, "/org/fcitx/fcitx-config-gtk3/wizard_skin_widget.ui", NULL);
 
@@ -137,7 +187,7 @@ fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
 
     gtk_widget_set_size_request(GTK_WIDGET(self->dark_skin), 100, 36);
     gtk_button_set_label(GTK_BUTTON(self->dark_skin), _("墨黑"));
-    
+
     _GET_OBJECT(default_skin_img)
     _GET_OBJECT(classic_skin_img)
     _GET_OBJECT(dark_skin_img)
@@ -154,47 +204,56 @@ fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
     gtk_image_set_from_pixbuf(GTK_IMAGE(self->dark_skin_img), pixbuf);
     g_object_unref(pixbuf);
 
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->dark_skin), TRUE);
+    g_signal_connect(G_OBJECT(self->default_skin), "toggled", 
+        G_CALLBACK(fcitx_wizard_skin_widget_skin_button_toggled), self);
+    g_signal_connect(G_OBJECT(self->classic_skin), "toggled", 
+        G_CALLBACK(fcitx_wizard_skin_widget_skin_button_toggled), self);
+    g_signal_connect(G_OBJECT(self->dark_skin), "toggled", 
+        G_CALLBACK(fcitx_wizard_skin_widget_skin_button_toggled), self);
 
-/*
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->addimbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("list-add-symbolic"), GTK_ICON_SIZE_BUTTON));
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->delimbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("list-remove-symbolic"), GTK_ICON_SIZE_BUTTON));
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->moveupbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("go-up-symbolic"), GTK_ICON_SIZE_BUTTON));
-    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->movedownbutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("go-down-symbolic"), GTK_ICON_SIZE_BUTTON));
-//    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->configurebutton), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("preferences-system-symbolic"), GTK_ICON_SIZE_BUTTON));
-//    gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(self->default_layout_button), gtk_image_new_from_gicon(g_themed_icon_new_with_default_fallbacks("input-keyboard-symbolic"), GTK_ICON_SIZE_BUTTON));
-
-    g_signal_connect(G_OBJECT(self->addimbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_addim_button_clicked), self);
-    g_signal_connect(G_OBJECT(self->delimbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_delim_button_clicked), self);
-    g_signal_connect(G_OBJECT(self->moveupbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_moveup_button_clicked), self);
-    g_signal_connect(G_OBJECT(self->movedownbutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_movedown_button_clicked), self);
-//    g_signal_connect(G_OBJECT(self->configurebutton), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_configure_button_clicked), self);
-//    g_signal_connect(G_OBJECT(self->default_layout_button), "clicked", G_CALLBACK(_fcitx_wizard_im_widget_default_layout_button_clicked), self);
-//    g_signal_connect(G_OBJECT(self->imview), "row-activated", G_CALLBACK(_fcitx_wizard_im_widget_row_activated), self);
-*/
 }
 
 static void
 fcitx_wizard_skin_widget_setup_ui(FcitxWizardSkinWidget *self)
 {
     FILE *fp;
+    FcitxConfigValueType value;
 
-    if (self->cfdesc) {
-        bindtextdomain(self->cfdesc->domain, LOCALEDIR);
-        bind_textdomain_codeset(self->cfdesc->domain, "UTF-8");
-
-        self->config = dummy_config_new(self->cfdesc);
-        fp = FcitxXDGGetFileWithPrefix(self->prefix, self->name, "r", NULL);
-        if (fp == NULL) {
-            //TODO: echo err msg
-            return;
-        }
-
-        dummy_config_load(self->config, fp);
-        dummy_config_sync(self->config);
-
-        fclose(fp);
+    if (self->cfdesc == NULL) {
+        FcitxLog(WARNING, _("Parameter self->cfdesc is NULL.\n"));
+        return;
     }
+
+    bindtextdomain(self->cfdesc->domain, LOCALEDIR);
+    bind_textdomain_codeset(self->cfdesc->domain, "UTF-8");
+
+    self->config = dummy_config_new(self->cfdesc);
+    
+    if ((fp = FcitxXDGGetFileWithPrefix(self->prefix, self->name, "r", NULL))
+        == NULL) 
+    {
+        FcitxLog(WARNING, _("Open file(%s/%s) error.\n"));
+        return;
+    }
+
+    dummy_config_load(self->config, fp);
+    dummy_config_sync(self->config);
+
+    fclose(fp);
+
+    value = FcitxConfigGetBindValue(&self->config->config, "ClassicUI", "SkinType");
+    FcitxLog(DEBUG, _("SkinType:%s.\n"), *(value.string));
+
+    if (strcmp(*(value.string), "default") == 0) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->default_skin), TRUE);
+    } else if (strcmp(*(value.string), "classic") == 0) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->classic_skin), TRUE);
+    } else if (strcmp(*(value.string), "dark") == 0) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->dark_skin), TRUE);
+    } else {
+        FcitxLog(WARNING, _("SkinType error.\n"));
+    }
+
 }
 
 GtkWidget*
@@ -212,6 +271,27 @@ fcitx_wizard_skin_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix,
 
 void fcitx_wizard_skin_widget_dispose(GObject* object)
 {
+    FcitxWizardSkinWidget* self = FCITX_WIZARD_SKIN_WIDGET(object);
+    if (self->name) {
+        g_free(self->name);
+        self->name = NULL;
+    }
+
+    if (self->prefix) {
+        g_free(self->prefix);
+        self->prefix = NULL;
+    }
+
+    if (self->parser) {
+        sub_config_parser_free(self->parser);
+        self->parser = NULL;
+    }
+ 
+    if (self->config) {
+        dummy_config_free(self->config);
+        self->config = NULL;
+    }
+ 
     G_OBJECT_CLASS (fcitx_wizard_skin_widget_parent_class)->dispose (object);
 }
 
