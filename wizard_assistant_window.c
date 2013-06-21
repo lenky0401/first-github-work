@@ -19,6 +19,8 @@
 #include "wizard_assistant_window.h"
 #include "configdesc.h"
 
+Wizard_Conf_Data conf_data[WIZARD_CONF_DATA_CURT_NUM];
+
 static void assistant_cancel(GtkAssistant * assistant, gpointer data);
 static void assistant_close(GtkAssistant * assistant, gpointer data);
 
@@ -80,6 +82,30 @@ page_hotkey(void)
     return page_box;
 }
 
+boolean load_wizard_conf_data()
+{
+    int i;
+    
+    conf_data[0].path_prefix = "";
+    conf_data[0].file_name = "config";
+    conf_data[0].cfdesc = get_config_desc("config.desc");
+    conf_data[0].conf_dirty = false;
+    
+    conf_data[1].path_prefix = "conf";
+    conf_data[1].file_name = "fcitx-classic-ui.config";
+    conf_data[1].cfdesc = get_config_desc("fcitx-classic-ui.desc");
+    conf_data[1].conf_dirty = false;
+    
+    for (i = 0; i < WIZARD_CONF_DATA_CURT_NUM; i ++) {
+        if (conf_data[1].cfdesc == NULL)
+            return false;
+    }
+
+    return true;
+}
+
+Wizard_Conf_Data conf_data[WIZARD_CONF_DATA_MAX_NUM];
+
 
 GtkWidget *
 create_assistant(void)
@@ -94,6 +120,10 @@ create_assistant(void)
         {NULL, -1, "快捷键设置", GTK_ASSISTANT_PAGE_CONTENT, TRUE},
         {NULL, -1, "向导设置完成", GTK_ASSISTANT_PAGE_CONFIRM, TRUE},
     };
+
+    if (!load_wizard_conf_data()) {
+        
+    }
 
     assistant = gtk_assistant_new();
     gtk_widget_set_size_request(assistant, 650, 450);
