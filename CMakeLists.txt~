@@ -17,6 +17,7 @@ set(fcitx_config_wizard_gtk3_sources
   configdesc.c
   im_dialog.c
   sub_config_parser.c
+  dummy_config.c
   keygrab.c
   fcitx-config-wizard-gtk3-resources.c
   )

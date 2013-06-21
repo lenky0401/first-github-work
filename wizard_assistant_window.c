@@ -18,6 +18,10 @@
 #include "wizard_hotkey_widget.h"
 #include "wizard_assistant_window.h"
 #include "configdesc.h"
+#include "common.h"
+#include "gdm-languages.h"
+
+#include "wizard_conf_data.h"
 
 Wizard_Conf_Data conf_data[WIZARD_CONF_DATA_CURT_NUM];
 
@@ -34,7 +38,6 @@ page_input_method_engin(void)
     gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);
    
     return page_box;
-
 }
 
 GtkWidget *
@@ -104,9 +107,6 @@ boolean load_wizard_conf_data()
     return true;
 }
 
-Wizard_Conf_Data conf_data[WIZARD_CONF_DATA_MAX_NUM];
-
-
 GtkWidget *
 create_assistant(void)
 {
@@ -122,7 +122,8 @@ create_assistant(void)
     };
 
     if (!load_wizard_conf_data()) {
-        
+        FcitxLog(WARNING, _("load_wizard_conf_data() failed.\n"));
+        exit(-1);
     }
 
     assistant = gtk_assistant_new();
@@ -136,8 +137,6 @@ create_assistant(void)
     g_free(s);
 
     page[1].widget = page_input_method_engin();
-
-  
     page[2].widget = page_personality_skin();
     page[3].widget = page_candidate_word();
     page[4].widget = page_hotkey();

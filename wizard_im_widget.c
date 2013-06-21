@@ -23,7 +23,7 @@
 #include "common.h"
 #include "wizard_im_widget.h"
 #include "gdm-languages.h"
-#include "im_dialog.h"
+#include "wizard_im_dialog.h"
 #include "config_widget.h"
 
 G_DEFINE_TYPE(FcitxWizardImWidget, fcitx_wizard_im_widget, GTK_TYPE_BOX)
@@ -237,6 +237,32 @@ _fcitx_wizard_im_widget_load(FcitxWizardImWidget* self)
 }
 
 void 
+_fcitx_wizard_im_widget_refresh_view(FcitxWizardImWidget* self)
+{
+    if (self->array) {
+        gtk_list_store_clear(self->imstore);
+
+        g_ptr_array_set_free_func(self->array, NULL);
+        foreach_ct context;
+        context.widget = self;
+        context.flag = FALSE;
+        g_ptr_array_foreach(self->array, _fcitx_wizard_inputmethod_insert_foreach_cb, 
+            &context);
+
+        if (context.flag) {
+            gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(
+                self->imview)), &context.iter);
+        }
+        
+        g_free(self->focus);
+        self->focus = NULL;
+
+        _fcitx_wizard_im_widget_im_selection_changed(gtk_tree_view_get_selection(
+            GTK_TREE_VIEW(self->imview)), self);
+    }
+}
+
+void 
 _fcitx_wizard_inputmethod_insert_foreach_cb(gpointer data, gpointer user_data)
 {
     foreach_ct* context = user_data;
@@ -296,15 +322,14 @@ _fcitx_wizard_im_widget_im_selection_changed(GtkTreeSelection *selection,
     }
 }
 
-
 void 
 _fcitx_wizard_im_widget_addim_button_clicked(GtkButton* button, 
     gpointer user_data)
 {
     FcitxWizardImWidget* self = user_data;
-    GtkWidget* dialog = fcitx_im_dialog_new(GTK_WINDOW(
-        gtk_widget_get_toplevel(GTK_WIDGET(self))));
-    
+    GtkWidget* dialog = fcitx_wizard_im_dialog_new(GTK_WINDOW(
+        gtk_widget_get_toplevel(GTK_WIDGET(self))), self);
+
     gtk_widget_show_all(dialog);
 
     g_free(self->focus);
@@ -328,8 +353,10 @@ _fcitx_wizard_im_widget_delim_button_clicked(GtkButton* button,
 
         g_free(self->focus);
         self->focus = NULL;
-
-        fcitx_input_method_set_imlist(self->improxy, self->array);
+        
+        _fcitx_wizard_im_widget_refresh_view(self);
+        //fcitx_input_method_set_imlist(self->improxy, self->array);
+        
     }
 }
 
@@ -365,7 +392,9 @@ _fcitx_wizard_im_widget_moveup_button_clicked(GtkButton* button,
             g_free(self->focus);
             self->focus = g_strdup(item->unique_name);
 
-            fcitx_input_method_set_imlist(self->improxy, self->array);
+            _fcitx_wizard_im_widget_refresh_view(self);
+
+            //fcitx_input_method_set_imlist(self->improxy, self->array);
         }
     }
 }
@@ -402,7 +431,8 @@ _fcitx_wizard_im_widget_movedown_button_clicked(GtkButton* button,
             g_free(self->focus);
             self->focus = g_strdup(item->unique_name);
 
-            fcitx_input_method_set_imlist(self->improxy, self->array);
+            _fcitx_wizard_im_widget_refresh_view(self);
+            //fcitx_input_method_set_imlist(self->improxy, self->array);
         }
     }
 }
