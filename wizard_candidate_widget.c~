@@ -186,6 +186,9 @@ vertical_candidate_button_toggled(GtkWidget* button,
 
     FcitxConfigBindValue(classic_ui_conf->config->config.configFile, "ClassicUI", 
         "VerticalList", &self->conf_data.vertical_candidate, NULL, NULL);
+
+    fcitx_wizard_candidate_widget_conf1_changed(self);
+
 }
 
 static void

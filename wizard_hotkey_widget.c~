@@ -122,6 +122,32 @@ fcitx_wizard_hotkey_widget_load_conf(FcitxWizardHotkeyWidget *self)
 
 }
 
+
+void 
+fcitx_wizard_hotkey_widget_data_changed(FcitxWizardHotkeyWidget *self)
+{
+/*
+    FILE *fp;
+    GError  *error;
+    gchar *argv[3];
+    
+    if ((fp = FcitxXDGGetFileUserWithPrefix(self->prefix, self->name, "w", NULL))
+        == NULL) 
+    {
+        FcitxLog(WARNING, _("Open file(%s/%s) error.\n"), self->prefix, self->name);
+        return;
+    }
+
+    FcitxConfigSaveConfigFileFp(fp, &self->config->config, self->cfdesc);
+    fclose(fp);
+
+    argv[0] = EXEC_PREFIX "/bin/fcitx-remote";
+    argv[1] = "-r";
+    argv[2] = 0;
+    g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error);
+*/   
+}
+
 void 
 trigger_key_button_changed(GtkWidget* button, 
     gpointer user_data)
@@ -144,6 +170,8 @@ trigger_key_button_changed(GtkWidget* button,
 
     FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "TriggerKey", 
         &self->conf_data.trigger_key, NULL, NULL);
+
+    fcitx_wizard_hotkey_widget_data_changed(self);
 }    
 
 void 
@@ -160,6 +188,8 @@ im_switch_key_button_toggled(GtkWidget* button,
 
     FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "IMSwitchKey", 
         &self->conf_data.im_switch_key, NULL, NULL);
+
+    fcitx_wizard_hotkey_widget_data_changed(self);
 }
 
 void 
@@ -173,6 +203,8 @@ im_switch_hotkey_combo_changed(GtkWidget* combo,
 
     FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "IMSwitchHotkey", 
         &self->conf_data.im_switch_hotkey, NULL, NULL);
+
+    fcitx_wizard_hotkey_widget_data_changed(self);
 }
 
 void 
@@ -197,6 +229,8 @@ prev_page_button_changed(GtkWidget* button,
 
     FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "PrevPageKey", 
         &self->conf_data.prev_page, NULL, NULL);
+
+    fcitx_wizard_hotkey_widget_data_changed(self);
 }    
 
 void 
@@ -220,6 +254,8 @@ next_page_button_changed(GtkWidget* button,
 
     FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "NextPageKey", 
         &self->conf_data.next_page, NULL, NULL);
+
+    fcitx_wizard_hotkey_widget_data_changed(self);
 }    
 
 static void

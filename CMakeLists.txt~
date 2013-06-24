@@ -129,6 +129,7 @@ add_executable(fcitx-config-wizard-gtk3 ${fcitx_config_wizard_gtk3_sources}
   ${RESOURCE_HEADER})
 
 install(TARGETS fcitx-config-wizard-gtk3 RUNTIME DESTINATION bin)
+
 install(DIRECTORY picture DESTINATION bin)
 
 target_link_libraries (fcitx-config-wizard-gtk3

@@ -149,15 +149,15 @@ fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
     _GET_OBJECT(classic_skin_img)
     _GET_OBJECT(dark_skin_img)
 
-    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(EXEC_PREFIX "/bin/picture/default.png", &error);
+    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file("./default.png", &error);
     gtk_image_set_from_pixbuf(GTK_IMAGE(self->default_skin_img), pixbuf);
     g_object_unref(pixbuf);
 
-    pixbuf = gdk_pixbuf_new_from_file(EXEC_PREFIX "/bin/picture/classic.png", &error);
+    pixbuf = gdk_pixbuf_new_from_file("./classic.png", &error);
     gtk_image_set_from_pixbuf(GTK_IMAGE(self->classic_skin_img), pixbuf);
     g_object_unref(pixbuf);
 
-    pixbuf = gdk_pixbuf_new_from_file(EXEC_PREFIX "/bin/picture/dark.png", &error);
+    pixbuf = gdk_pixbuf_new_from_file("./dark.png", &error);
     gtk_image_set_from_pixbuf(GTK_IMAGE(self->dark_skin_img), pixbuf);
     g_object_unref(pixbuf);
 

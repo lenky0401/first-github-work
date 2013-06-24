@@ -28,7 +28,7 @@
 #include "wizard_conf_data.h"
 
 G_BEGIN_DECLS
-
+;//
 #define FCITX_TYPE_WIZARD_HOTKEY_WIDGET fcitx_wizard_hotkey_widget_get_type()
 
 #define FCITX_WIZARD_HOTKEY_WIDGET(obj) \

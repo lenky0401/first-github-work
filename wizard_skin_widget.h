@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010~2012 by CSSlayer                                   *
+ *   Copyright (C) 2013~2014 by Lenky0401                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,7 +28,6 @@
 #include "wizard_conf_data.h"
 
 G_BEGIN_DECLS
-;//
 
 #define FCITX_TYPE_WIZARD_SKIN_WIDGET fcitx_wizard_skin_widget_get_type()
 
