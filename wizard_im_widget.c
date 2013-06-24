@@ -35,6 +35,12 @@ enum {
     IM_N_COLUMNS
 };
 
+enum {
+    PROP_0,
+
+    PROP_CONF_DATA
+};
+
 typedef struct {
     FcitxWizardImWidget* widget;
     GtkTreeIter iter;
@@ -57,11 +63,38 @@ fcitx_wizard_im_widget_constructor(GType gtype,
      guint n_properties, GObjectConstructParam *properties);
 
 static void
+fcitx_wizard_im_widget_set_property(GObject *gobject,
+    guint prop_id, const GValue *value, GParamSpec *pspec);
+
+static void
 fcitx_wizard_im_widget_class_init(FcitxWizardImWidgetClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     gobject_class->dispose = fcitx_wizard_im_widget_dispose;
+    gobject_class->set_property = fcitx_wizard_im_widget_set_property;
     gobject_class->constructor = fcitx_wizard_im_widget_constructor;
+
+    g_object_class_install_property(gobject_class, PROP_CONF_DATA,
+        g_param_spec_pointer("conf_data", "", "", 
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+
+}
+
+static void
+fcitx_wizard_im_widget_set_property(GObject *gobject,
+    guint prop_id, const GValue *value, GParamSpec *pspec)
+{
+
+    FcitxWizardImWidget* im_widget = FCITX_WIZARD_IM_WIDGET(gobject);
+    
+    switch (prop_id) {
+    case PROP_CONF_DATA:
+        im_widget->conf_data = g_value_get_pointer(value);
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, prop_id, pspec);
+        break;
+    }
 }
 
 static GObject *
@@ -142,10 +175,10 @@ fcitx_wizard_im_widget_init(FcitxWizardImWidget* self)
 }
 
 GtkWidget*
-fcitx_wizard_im_widget_new(void)
+fcitx_wizard_im_widget_new(Wizard_Conf_Data *conf_data)
 {
     FcitxWizardImWidget* widget = g_object_new(FCITX_TYPE_WIZARD_IM_WIDGET,
-                     NULL);
+                     "conf_data", conf_data, NULL);
 
     return GTK_WIDGET(widget);
 }
@@ -155,9 +188,16 @@ fcitx_wizard_im_widget_dispose(GObject* object)
 {
     FcitxWizardImWidget* self = FCITX_WIZARD_IM_WIDGET(object);
     if (self->array) {
-        g_ptr_array_set_free_func(self->array, (GDestroyNotify)fcitx_im_item_free);
+        g_ptr_array_set_free_func(self->array, (GDestroyNotify) fcitx_im_item_free);
         g_ptr_array_free(self->array, FALSE);
         self->array = NULL;
+    }
+
+    if (self->im_dialog_array) {
+        g_ptr_array_set_free_func(self->im_dialog_array, 
+            (GDestroyNotify)fcitx_im_item_free);
+        g_ptr_array_free(self->im_dialog_array, FALSE);
+        self->im_dialog_array = NULL;
     }
 
     if (self->improxy) {
@@ -349,7 +389,20 @@ _fcitx_wizard_im_widget_delim_button_clicked(GtkButton* button,
     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
         FcitxIMItem* item = NULL;
         gtk_tree_model_get(model, &iter, IM_LIST_IM, &item, -1);
+
+        if (item == NULL)
+            return;
+
         item->enable = false;
+
+        if (self->im_dialog_array == NULL) {
+            if (self->im_dialog_array_del == NULL) 
+                self->im_dialog_array_del = g_ptr_array_new();
+            g_ptr_array_add(self->im_dialog_array_del, item);
+        } else {
+            g_ptr_array_add(self->im_dialog_array, item);
+        }
+        g_ptr_array_remove(self->array, item);
 
         g_free(self->focus);
         self->focus = NULL;
@@ -435,5 +488,13 @@ _fcitx_wizard_im_widget_movedown_button_clicked(GtkButton* button,
             //fcitx_input_method_set_imlist(self->improxy, self->array);
         }
     }
+}
+
+void 
+_fcitx_wizard_im_widget_update(void* data)
+{
+    FcitxWizardImWidget *self = data;
+
+    fcitx_input_method_set_imlist(self->improxy, self->array);
 }
 

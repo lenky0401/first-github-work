@@ -13,6 +13,13 @@ enum {
     IM_N_COLUMNS
 };
 
+enum {
+    PROP_0,
+
+    PROP_OWNER
+};
+
+
 static void fcitx_wizard_im_dialog_dispose(GObject* object);
 static void _fcitx_wizard_im_dialog_connect(FcitxWizardImDialog* self);
 static void _fcitx_wizard_im_dialog_load(FcitxWizardImDialog* self);
@@ -39,6 +46,10 @@ fcitx_wizard_im_dialog_constructor   (GType                  gtype,
                                GObjectConstructParam *properties);
 
 static void
+fcitx_wizard_im_dialog_set_property(GObject *gobject,
+    guint prop_id, const GValue *value, GParamSpec *pspec);
+
+static void
 icon_press_cb (GtkEntry       *entry,
                gint            position,
                GdkEventButton *event,
@@ -59,11 +70,35 @@ static const gchar* _get_current_lang()
 }
 
 static void
+fcitx_wizard_im_dialog_set_property(GObject *gobject,
+    guint prop_id, const GValue *value, GParamSpec *pspec)
+{
+
+    FcitxWizardImDialog* im_dialog = FCITX_WIZARD_IM_DIALOG(gobject);
+    
+    switch (prop_id) {
+    case PROP_OWNER:
+        im_dialog->owner = g_value_get_pointer(value);
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, prop_id, pspec);
+        break;
+    }
+}
+
+static void
 fcitx_wizard_im_dialog_class_init(FcitxWizardImDialogClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+    gobject_class->set_property = fcitx_wizard_im_dialog_set_property;
     gobject_class->dispose = fcitx_wizard_im_dialog_dispose;
     gobject_class->constructor = fcitx_wizard_im_dialog_constructor;
+
+    g_object_class_install_property(gobject_class, PROP_OWNER,
+        g_param_spec_pointer("owner", "OWNER",
+        "The Owner of this Dialog", 
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+    
 }
 
 static GObject *
@@ -92,11 +127,6 @@ fcitx_wizard_im_dialog_constructor   (GType                  gtype,
 void fcitx_wizard_im_dialog_dispose(GObject* object)
 {
     FcitxWizardImDialog* self = FCITX_WIZARD_IM_DIALOG(object);
-    if (self->array) {
-        g_ptr_array_set_free_func(self->array, (GDestroyNotify) fcitx_im_item_free);
-        g_ptr_array_free(self->array, FALSE);
-        self->array = NULL;
-    }
 
     if (self->improxy) {
         g_signal_handlers_disconnect_by_func(self->improxy, G_CALLBACK(_fcitx_wizard_im_dialog_imlist_changed_cb), self);
@@ -201,19 +231,29 @@ void _fcitx_wizard_im_dialog_onlycurlangcheckbox_toggled(GtkToggleButton* button
 
 void _fcitx_wizard_im_dialog_connect(FcitxWizardImDialog* self)
 {
+    int i;
     GError* error = NULL;
-    self->improxy = fcitx_input_method_new(G_BUS_TYPE_SESSION,
+    if (self->owner->im_dialog_array == NULL) {
+        self->improxy = fcitx_input_method_new(G_BUS_TYPE_SESSION,
                                           G_DBUS_PROXY_FLAGS_NONE,
                                           fcitx_utils_get_display_number(),
                                           NULL,
                                           &error
                                          );
-    if (self->improxy == NULL) {
-        g_error_free(error);
-        return;
+        if (self->improxy == NULL) {
+            g_error_free(error);
+            return;
+        }
+        self->owner->im_dialog_array = fcitx_input_method_get_imlist(self->improxy);
+        
+        if (self->owner->im_dialog_array_del != NULL) {
+            for (i = 0; i < self->owner->im_dialog_array_del->len; i += 1) {
+                g_ptr_array_add(self->owner->im_dialog_array, 
+                    g_ptr_array_index(self->owner->im_dialog_array_del, i));
+            }
+        }
     }
-    g_signal_connect(self->improxy, "imlist-changed", G_CALLBACK(_fcitx_wizard_im_dialog_imlist_changed_cb), self);
-
+    
     _fcitx_wizard_im_dialog_load(self);
 }
 
@@ -221,21 +261,19 @@ void _fcitx_wizard_im_dialog_load(FcitxWizardImDialog* self)
 {
     gtk_list_store_clear(self->availimstore);
 
-    if (self->array) {
-        g_ptr_array_set_free_func(self->array, (GDestroyNotify) fcitx_im_item_free);
-        g_ptr_array_free(self->array, FALSE);
-        self->array = NULL;
-    }
-
-    self->array = fcitx_input_method_get_imlist(self->improxy);
     g_hash_table_remove_all(self->langset);
 
-    if (self->array) {
-        g_ptr_array_set_free_func(self->array, NULL);
-        g_ptr_array_foreach(self->array, _fcitx_inputmethod_insert_foreach_cb, self);
-
-        _fcitx_wizard_im_dialog_im_selection_changed(gtk_tree_view_get_selection(GTK_TREE_VIEW(self->availimview)), self);
+    if (self->owner->im_dialog_array == NULL) {
+        return;
     }
+
+    g_ptr_array_set_free_func(self->owner->im_dialog_array, NULL);
+    g_ptr_array_foreach(self->owner->im_dialog_array, 
+        _fcitx_inputmethod_insert_foreach_cb, self);
+
+    _fcitx_wizard_im_dialog_im_selection_changed(
+        gtk_tree_view_get_selection(GTK_TREE_VIEW(self->availimview)), self);
+
 }
 
 void _fcitx_inputmethod_insert_foreach_cb(gpointer data,
@@ -397,8 +435,8 @@ void add_foreach (GtkTreeModel      *model,
     item->enable = TRUE;
     context->changed = TRUE;
 
-    g_ptr_array_remove(self->array, item);
-    g_ptr_array_add(self->array, item);
+    g_ptr_array_remove(self->owner->im_dialog_array, item);
+    g_ptr_array_add(self->owner->array, item);
 }
 
 void _fcitx_wizard_im_dialog_response_cb(GtkDialog *dialog,
@@ -407,14 +445,16 @@ void _fcitx_wizard_im_dialog_response_cb(GtkDialog *dialog,
 {
     FcitxWizardImDialog* self = FCITX_WIZARD_IM_DIALOG(dialog);
     if (response == GTK_RESPONSE_OK) {
-        GtkTreeSelection* selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self->availimview));
+        GtkTreeSelection* selection = 
+            gtk_tree_view_get_selection(GTK_TREE_VIEW(self->availimview));
         add_foreach_context context;
         context.self = self;
         context.changed = FALSE;
 
         gtk_tree_selection_selected_foreach(selection, add_foreach, &context);
-        if (context.changed)
-            fcitx_input_method_set_imlist(self->improxy, self->array);
+        if (context.changed) {
+            _fcitx_wizard_im_widget_refresh_view(self->owner);
+        }
     }
 
     gtk_widget_destroy(GTK_WIDGET(dialog));

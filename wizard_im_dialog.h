@@ -23,6 +23,7 @@
 #include <gtk/gtk.h>
 #include <gio/gio.h>
 #include <fcitx-gclient/fcitxinputmethod.h>
+#include "wizard_im_widget.h"
 
 G_BEGIN_DECLS
 ;//gqk
@@ -50,7 +51,7 @@ typedef struct _FcitxWizardImDialogClass FcitxWizardImDialogClass;
 struct _FcitxWizardImDialog {
     GtkDialog parent;
     FcitxInputMethod* improxy;
-    GPtrArray* array;
+//    GPtrArray* array;
     GtkListStore* availimstore;
     GtkWidget* availimview;
     GtkWidget* filterentry;
@@ -60,6 +61,7 @@ struct _FcitxWizardImDialog {
     GtkBuilder* builder;
     GHashTable* langset;
     gchar* language;
+    FcitxWizardImWidget* owner;
 };
 
 struct _FcitxWizardImDialogClass {
@@ -67,7 +69,8 @@ struct _FcitxWizardImDialogClass {
 };
 
 GtkWidget*
-fcitx_wizard_im_dialog_new(GtkWindow* parent);
+fcitx_wizard_im_dialog_new(GtkWindow *parent, FcitxWizardImWidget* owner);
+
 
 G_END_DECLS
 

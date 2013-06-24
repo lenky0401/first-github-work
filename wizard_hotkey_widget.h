@@ -25,6 +25,7 @@
 #include "fcitx-gclient/fcitxinputmethod.h"
 #include "sub_config_parser.h"
 #include "dummy_config.h"
+#include "wizard_conf_data.h"
 
 G_BEGIN_DECLS
 ;//
@@ -60,12 +61,7 @@ struct _FcitxWizardHotkeyConfData {
 
 struct _FcitxWizardHotkeyWidget {
     GtkBox parent;
-    FcitxConfigFileDesc* cfdesc;
-    gchar* prefix;
-    gchar* name;
-    FcitxSubConfigParser* parser;
-    DummyConfig* config;
-
+    Wizard_Conf_Data *config_conf_data;
     GtkWidget *trigger_key_button[2];
     GtkWidget *im_switch_key_button;
     GtkWidget *im_switch_hotkey_combo;
@@ -80,9 +76,7 @@ struct _FcitxWizardHotkeyWidgetClass {
 };
 
 GtkWidget*
-fcitx_wizard_hotkey_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix, 
-    const gchar* name, const gchar* subconfig);
-
+fcitx_wizard_hotkey_widget_new(Wizard_Conf_Data *config);
 
 G_END_DECLS
 

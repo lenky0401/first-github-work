@@ -25,8 +25,10 @@
 #include "fcitx-gclient/fcitxinputmethod.h"
 #include "sub_config_parser.h"
 #include "dummy_config.h"
+#include "wizard_conf_data.h"
 
 G_BEGIN_DECLS
+;//
 
 #define FCITX_TYPE_WIZARD_SKIN_WIDGET fcitx_wizard_skin_widget_get_type()
 
@@ -58,10 +60,7 @@ struct _FcitxWizardSkinConfData {
 
 struct _FcitxWizardSkinWidget {
     GtkBox parent;
-    FcitxConfigFileDesc* cfdesc;
-    gchar* prefix;
-    gchar* name;
-    FcitxSubConfigParser* parser;
+    Wizard_Conf_Data *classic_ui_conf_data;
     DummyConfig* config;
     GtkWidget* default_skin;
     GtkWidget* classic_skin;
@@ -78,8 +77,7 @@ struct _FcitxWizardSkinWidgetClass {
 };
 
 GtkWidget*
-fcitx_wizard_skin_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix, 
-    const gchar* name, const gchar* subconfig);
+fcitx_wizard_skin_widget_new(Wizard_Conf_Data *classic_ui);
 
 
 G_END_DECLS

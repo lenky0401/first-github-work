@@ -23,19 +23,25 @@
 
 #include "wizard_conf_data.h"
 
-Wizard_Conf_Data conf_data[WIZARD_CONF_DATA_CURT_NUM];
+#define FILE_CONF_DATA_CURT_NUM (2)
+#define WIZARD_CONF_DATA_CURT_NUM (3)
+
+static File_Conf_Data file_conf_data[FILE_CONF_DATA_CURT_NUM];
+static Wizard_Conf_Data wizard_conf_data[WIZARD_CONF_DATA_CURT_NUM];
+static GtkWidget* im_widget;
 
 static void assistant_cancel(GtkAssistant * assistant, gpointer data);
 static void assistant_close(GtkAssistant * assistant, gpointer data);
+static void assistant_apply(GtkAssistant * assistant, gpointer data);
 
 GtkWidget *
 page_input_method_engin(void)
 {
     GtkWidget* page_box;
-    GtkWidget* imwidget = fcitx_wizard_im_widget_new();
+    im_widget = fcitx_wizard_im_widget_new(&wizard_conf_data[0]);
    
     page_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(page_box), im_widget, TRUE, TRUE, 0);
    
     return page_box;
 }
@@ -44,12 +50,11 @@ GtkWidget *
 page_personality_skin(void)
 {
     GtkWidget* page_box;
-    GtkWidget* imwidget = fcitx_wizard_skin_widget_new(
-        get_config_desc("fcitx-classic-ui.desc"), "conf", 
-        "fcitx-classic-ui.config", "SkinType");
+    GtkWidget* skin_widget = fcitx_wizard_skin_widget_new(
+        &wizard_conf_data[2]);
    
     page_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(page_box), skin_widget, TRUE, TRUE, 0);
    
     return page_box;
 }
@@ -58,15 +63,11 @@ GtkWidget *
 page_candidate_word(void)
 {
     GtkWidget* page_box;
-    GtkWidget* imwidget = fcitx_wizard_candidate_widget_new(
-        get_config_desc("config.desc"), "", 
-        "config", "Output",
-        get_config_desc("fcitx-classic-ui.desc"), "conf", 
-        "fcitx-classic-ui.config", "CandidateUi"
-        );
+    GtkWidget* candidate_widget = fcitx_wizard_candidate_widget_new(
+        &wizard_conf_data[1], &wizard_conf_data[2]);
    
     page_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(page_box), candidate_widget, TRUE, TRUE, 0);
    
     return page_box;
 }
@@ -75,12 +76,11 @@ GtkWidget *
 page_hotkey(void)
 {
     GtkWidget* page_box;
-    GtkWidget* imwidget = fcitx_wizard_hotkey_widget_new(
-        get_config_desc("config.desc"), "", 
-        "config", "HotKey");
+    GtkWidget* hotkey_widget = fcitx_wizard_hotkey_widget_new(
+        &wizard_conf_data[1]);
    
     page_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_box_pack_start(GTK_BOX(page_box), imwidget, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(page_box), hotkey_widget, TRUE, TRUE, 0);
    
     return page_box;
 }
@@ -88,25 +88,79 @@ page_hotkey(void)
 boolean load_wizard_conf_data()
 {
     int i;
+    FILE *fp;
+
+    file_conf_data[0].path_prefix = "";
+    file_conf_data[0].file_name = "config";
+    file_conf_data[0].cfdesc = get_config_desc("config.desc");
     
-    conf_data[0].path_prefix = "";
-    conf_data[0].file_name = "config";
-    conf_data[0].cfdesc = get_config_desc("config.desc");
-    conf_data[0].conf_dirty = false;
+    file_conf_data[1].path_prefix = "conf";
+    file_conf_data[1].file_name = "fcitx-classic-ui.config";
+    file_conf_data[1].cfdesc = get_config_desc("fcitx-classic-ui.desc");
     
-    conf_data[1].path_prefix = "conf";
-    conf_data[1].file_name = "fcitx-classic-ui.config";
-    conf_data[1].cfdesc = get_config_desc("fcitx-classic-ui.desc");
-    conf_data[1].conf_dirty = false;
-    
-    for (i = 0; i < WIZARD_CONF_DATA_CURT_NUM; i ++) {
-        if (conf_data[1].cfdesc == NULL)
+    for (i = 0; i < FILE_CONF_DATA_CURT_NUM; i ++) {
+        if (file_conf_data[i].cfdesc == NULL)
             return false;
+
+        file_conf_data[i].config = dummy_config_new(file_conf_data[i].cfdesc);
+        if ((fp = FcitxXDGGetFileWithPrefix(file_conf_data[i].path_prefix, 
+            file_conf_data[i].file_name, "r", NULL)) == NULL) 
+        {
+            FcitxLog(WARNING, _("Open file(%s/%s) error.\n"), 
+                file_conf_data[i].path_prefix, file_conf_data[i].file_name);
+            return false;
+        }
+
+        dummy_config_load(file_conf_data[i].config, fp);
+        dummy_config_sync(file_conf_data[i].config);
+
+        fclose(fp);
+
     }
+
+    wizard_conf_data[0].conf_data = NULL;
+    wizard_conf_data[1].conf_data = &file_conf_data[0];
+    wizard_conf_data[2].conf_data = &file_conf_data[1];
 
     return true;
 }
 
+void 
+update_file_conf_data(void *data)
+{
+    FILE *fp;
+    File_Conf_Data *fcd = (File_Conf_Data *)data;
+    
+    if ((fp = FcitxXDGGetFileUserWithPrefix(fcd->path_prefix, fcd->file_name, "w", NULL))
+        == NULL) 
+    {
+        FcitxLog(WARNING, _("Open file(%s/%s) error.\n"), fcd->path_prefix, fcd->file_name);
+        return;
+    }
+
+    FcitxConfigSaveConfigFileFp(fp, &fcd->config->config, fcd->cfdesc);
+    fclose(fp);
+}
+
+void 
+update_wizard_conf_data()
+{
+    int i;
+    GError  *error;
+    gchar *argv[3];
+
+    _fcitx_wizard_im_widget_update(im_widget);
+    
+    for (i = 0; i < FILE_CONF_DATA_CURT_NUM; i ++) {
+        update_file_conf_data(&file_conf_data[i]);
+    }
+
+    argv[0] = EXEC_PREFIX "/bin/fcitx-remote";
+    argv[1] = "-r";
+    argv[2] = 0;
+    g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error);
+}
+    
 GtkWidget *
 create_assistant(void)
 {
@@ -162,6 +216,8 @@ create_assistant(void)
         NULL);
     g_signal_connect(G_OBJECT(assistant), "close", G_CALLBACK (assistant_close), 
         NULL);
+    g_signal_connect(G_OBJECT(assistant), "apply", G_CALLBACK (assistant_apply), 
+        NULL);
     
     return assistant;
 }
@@ -177,4 +233,11 @@ assistant_close(GtkAssistant * assistant, gpointer data)
 {
     gtk_widget_destroy(GTK_WIDGET(assistant));
 }
+
+static void
+assistant_apply(GtkAssistant * assistant, gpointer data)
+{
+    update_wizard_conf_data();
+}
+
 

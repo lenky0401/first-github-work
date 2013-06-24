@@ -42,10 +42,7 @@
 enum {
     PROP_0,
 
-    PROP_CONFIG_DESC,
-    PROP_PREFIX,
-    PROP_NAME,
-    PROP_SUBCONFIG
+    PROP_CLASS_UI
 };
 //static gint config_widget_signals[LAST_SIGNAL] = { 0 };
 
@@ -71,24 +68,8 @@ fcitx_wizard_skin_widget_class_init(FcitxWizardSkinWidgetClass *klass)
     gobject_class->dispose = fcitx_wizard_skin_widget_dispose;
     gobject_class->constructor = fcitx_wizard_skin_widget_constructor;
 
-    g_object_class_install_property(gobject_class, PROP_CONFIG_DESC,
-        g_param_spec_pointer("cfdesc", "Configuration Description",
-        "Configuration Description for this widget", 
-        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-    g_object_class_install_property(gobject_class, PROP_PREFIX,
-        g_param_spec_string("prefix", "Prefix of path",
-        "Prefix of configuration path", NULL,
-        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-    g_object_class_install_property(gobject_class, PROP_NAME,
-        g_param_spec_string("name", "File name",
-        "File name of configuration file", NULL,
-        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-    g_object_class_install_property(gobject_class,
-        PROP_SUBCONFIG, g_param_spec_string("subconfig",
-        "subconfig", "subconfig", NULL,
+    g_object_class_install_property(gobject_class, PROP_CLASS_UI,
+        g_param_spec_pointer("classic_ui", "", "", 
         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
     
 }
@@ -119,11 +100,15 @@ void
 fcitx_wizard_skin_widget_skin_button_toggled(GtkWidget* button, 
     gpointer user_data)
 {
-    FILE *fp;
+ //   FILE *fp;
     FcitxWizardSkinWidget *self = user_data;
-    GError  *error;
-    gchar *argv[3];
-    
+//    GError  *error;
+//    gchar *argv[3];
+    File_Conf_Data* conf;
+
+    conf = self->classic_ui_conf_data->conf_data;
+
+
     if(!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button)))
         return;
 
@@ -142,9 +127,9 @@ fcitx_wizard_skin_widget_skin_button_toggled(GtkWidget* button,
         strcpy(self->conf_data.skin_type, "dark");
     }
 
-    FcitxConfigBindValue(self->config->config.configFile, "ClassicUI", "SkinType", 
+    FcitxConfigBindValue(conf->config->config.configFile, "ClassicUI", "SkinType", 
         &self->conf_data.skin_type, NULL, NULL);
-
+/*
     if ((fp = FcitxXDGGetFileUserWithPrefix(self->prefix, self->name, "w", NULL))
         == NULL) 
     {
@@ -158,7 +143,7 @@ fcitx_wizard_skin_widget_skin_button_toggled(GtkWidget* button,
     argv[1] = "-r";
     argv[2] = 0;
     g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error);
-    
+*/    
 }
 
 static void
@@ -215,32 +200,12 @@ fcitx_wizard_skin_widget_init(FcitxWizardSkinWidget* self)
 static void
 fcitx_wizard_skin_widget_setup_ui(FcitxWizardSkinWidget *self)
 {
-    FILE *fp;
     FcitxConfigValueType value;
+    File_Conf_Data* conf;
 
-    if (self->cfdesc == NULL) {
-        FcitxLog(WARNING, _("Parameter self->cfdesc is NULL.\n"));
-        return;
-    }
+    conf = self->classic_ui_conf_data->conf_data;
 
-    bindtextdomain(self->cfdesc->domain, LOCALEDIR);
-    bind_textdomain_codeset(self->cfdesc->domain, "UTF-8");
-
-    self->config = dummy_config_new(self->cfdesc);
-    
-    if ((fp = FcitxXDGGetFileWithPrefix(self->prefix, self->name, "r", NULL))
-        == NULL) 
-    {
-        FcitxLog(WARNING, _("Open file(%s/%s) error.\n"));
-        return;
-    }
-
-    dummy_config_load(self->config, fp);
-    dummy_config_sync(self->config);
-
-    fclose(fp);
-
-    value = FcitxConfigGetBindValue(&self->config->config, "ClassicUI", "SkinType");
+    value = FcitxConfigGetBindValue(&conf->config->config, "ClassicUI", "SkinType");
     FcitxLog(DEBUG, _("SkinType:%s.\n"), *(value.string));
 
     if (strcmp(*(value.string), "default") == 0) {
@@ -256,12 +221,10 @@ fcitx_wizard_skin_widget_setup_ui(FcitxWizardSkinWidget *self)
 }
 
 GtkWidget*
-fcitx_wizard_skin_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix, 
-    const gchar* name, const gchar* subconfig)
+fcitx_wizard_skin_widget_new(Wizard_Conf_Data *classic_ui)
 {
     FcitxWizardSkinWidget* widget = g_object_new(FCITX_TYPE_WIZARD_SKIN_WIDGET, 
-        "cfdesc", cfdesc, "prefix", 
-        prefix, "name", name, "subconfig", subconfig, NULL);
+        "classic_ui", classic_ui, NULL);
 
     fcitx_wizard_skin_widget_setup_ui(widget);
 
@@ -270,27 +233,6 @@ fcitx_wizard_skin_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix,
 
 void fcitx_wizard_skin_widget_dispose(GObject* object)
 {
-    FcitxWizardSkinWidget* self = FCITX_WIZARD_SKIN_WIDGET(object);
-    if (self->name) {
-        g_free(self->name);
-        self->name = NULL;
-    }
-
-    if (self->prefix) {
-        g_free(self->prefix);
-        self->prefix = NULL;
-    }
-
-    if (self->parser) {
-        sub_config_parser_free(self->parser);
-        self->parser = NULL;
-    }
- 
-    if (self->config) {
-        dummy_config_free(self->config);
-        self->config = NULL;
-    }
- 
     G_OBJECT_CLASS (fcitx_wizard_skin_widget_parent_class)->dispose (object);
 }
 
@@ -300,23 +242,8 @@ fcitx_wizard_skin_widget_set_property(GObject *gobject,
 {
     FcitxWizardSkinWidget* config_widget = FCITX_WIZARD_SKIN_WIDGET(gobject);
     switch (prop_id) {
-    case PROP_CONFIG_DESC:
-        config_widget->cfdesc = g_value_get_pointer(value);
-        break;
-    case PROP_PREFIX:
-        if (config_widget->prefix)
-            g_free(config_widget->prefix);
-        config_widget->prefix = g_strdup(g_value_get_string(value));
-        break;
-    case PROP_NAME:
-        if (config_widget->name)
-            g_free(config_widget->name);
-        config_widget->name = g_strdup(g_value_get_string(value));
-        break;
-    case PROP_SUBCONFIG:
-        if (config_widget->parser)
-            sub_config_parser_free(config_widget->parser);
-        config_widget->parser = sub_config_parser_new(g_value_get_string(value));
+    case PROP_CLASS_UI:
+        config_widget->classic_ui_conf_data = g_value_get_pointer(value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, prop_id, pspec);

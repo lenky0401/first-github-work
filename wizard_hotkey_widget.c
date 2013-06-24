@@ -34,10 +34,7 @@
 enum {
     PROP_0,
 
-    PROP_CONFIG_DESC,
-    PROP_PREFIX,
-    PROP_NAME,
-    PROP_SUBCONFIG
+    PROP_CONFIG
 };
 
 
@@ -62,24 +59,8 @@ fcitx_wizard_hotkey_widget_class_init(FcitxWizardHotkeyWidgetClass *klass)
     gobject_class->dispose = fcitx_wizard_hotkey_widget_dispose;
     gobject_class->constructor = fcitx_wizard_hotkey_widget_constructor;
 
-    g_object_class_install_property(gobject_class, PROP_CONFIG_DESC,
-        g_param_spec_pointer("cfdesc", "Configuration Description",
-        "Configuration Description for this widget", 
-        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-    g_object_class_install_property(gobject_class, PROP_PREFIX,
-        g_param_spec_string("prefix", "Prefix of path",
-        "Prefix of configuration path", NULL,
-        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-    g_object_class_install_property(gobject_class, PROP_NAME,
-        g_param_spec_string("name", "File name",
-        "File name of configuration file", NULL,
-        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-    g_object_class_install_property(gobject_class,
-        PROP_SUBCONFIG, g_param_spec_string("subconfig",
-        "subconfig", "subconfig", NULL,
+    g_object_class_install_property(gobject_class, PROP_CONFIG,
+        g_param_spec_pointer("config", "", "", 
         G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 
 }
@@ -105,23 +86,27 @@ fcitx_wizard_hotkey_widget_init(FcitxWizardHotkeyWidget* self)
 static void
 fcitx_wizard_hotkey_widget_load_conf(FcitxWizardHotkeyWidget *self)
 {
-    FILE *fp;
+//    FILE *fp;
     FcitxConfigValueType value;
+    File_Conf_Data* conf = self->config_conf_data->conf_data;
 
-    if (self->cfdesc == NULL) {
-        FcitxLog(WARNING, _("Parameter self->cfdesc is NULL.\n"));
-        return;
-    }
+/*    FcitxConfigFileDesc *cfdesc; 
+    const gchar* prefix;
+    const gchar* name;
 
-    bindtextdomain(self->cfdesc->domain, LOCALEDIR);
-    bind_textdomain_codeset(self->cfdesc->domain, "UTF-8");
+    cfdesc = (FcitxConfigFileDesc *)self->config_conf_data->conf;
+    prefix = self->config_conf_data->path_prefix;
+    name = self->config_conf_data->file_name;
 
-    self->config = dummy_config_new(self->cfdesc);
+    bindtextdomain(cfdesc->domain, LOCALEDIR);
+    bind_textdomain_codeset(cfdesc->domain, "UTF-8");
+
+    self->config = dummy_config_new(cfdesc);
     
-    if ((fp = FcitxXDGGetFileWithPrefix(self->prefix, self->name, "r", NULL))
+    if ((fp = FcitxXDGGetFileWithPrefix(prefix, name, "r", NULL))
         == NULL) 
     {
-        FcitxLog(WARNING, _("Open file(%s/%s) error.\n"), self->prefix, self->name);
+        FcitxLog(WARNING, _("Open file(%s/%s) error.\n"), prefix, name);
         return;
     }
 
@@ -129,8 +114,8 @@ fcitx_wizard_hotkey_widget_load_conf(FcitxWizardHotkeyWidget *self)
     dummy_config_sync(self->config);
 
     fclose(fp);
-
-    value = FcitxConfigGetBindValue(&self->config->config, "Hotkey", "TriggerKey");
+*/
+    value = FcitxConfigGetBindValue(&conf->config->config, "Hotkey", "TriggerKey");
     keygrab_button_set_key(KEYGRAB_BUTTON(self->trigger_key_button[0]), 
         ((FcitxHotkeys *)value.hotkey)->hotkey[0].sym, 
         ((FcitxHotkeys *)value.hotkey)->hotkey[0].state);
@@ -138,14 +123,14 @@ fcitx_wizard_hotkey_widget_load_conf(FcitxWizardHotkeyWidget *self)
         ((FcitxHotkeys *)value.hotkey)->hotkey[1].sym, 
         ((FcitxHotkeys *)value.hotkey)->hotkey[1].state);
 
-    value = FcitxConfigGetBindValue(&self->config->config, "Hotkey", "IMSwitchKey");
+    value = FcitxConfigGetBindValue(&conf->config->config, "Hotkey", "IMSwitchKey");
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->im_switch_key_button),
         *value.boolvalue); 
 
-    value = FcitxConfigGetBindValue(&self->config->config, "Hotkey", "IMSwitchHotkey");
+    value = FcitxConfigGetBindValue(&conf->config->config, "Hotkey", "IMSwitchHotkey");
     gtk_combo_box_set_active(GTK_COMBO_BOX(self->im_switch_hotkey_combo), *value.enumerate);
 
-    value = FcitxConfigGetBindValue(&self->config->config, "Hotkey", "PrevPageKey");
+    value = FcitxConfigGetBindValue(&conf->config->config, "Hotkey", "PrevPageKey");
     keygrab_button_set_key(KEYGRAB_BUTTON(self->prev_page_button[0]), 
         ((FcitxHotkeys *)value.hotkey)->hotkey[0].sym, 
         ((FcitxHotkeys *)value.hotkey)->hotkey[0].state);
@@ -153,7 +138,7 @@ fcitx_wizard_hotkey_widget_load_conf(FcitxWizardHotkeyWidget *self)
         ((FcitxHotkeys *)value.hotkey)->hotkey[1].sym, 
         ((FcitxHotkeys *)value.hotkey)->hotkey[1].state);
 
-    value = FcitxConfigGetBindValue(&self->config->config, "Hotkey", "NextPageKey");
+    value = FcitxConfigGetBindValue(&conf->config->config, "Hotkey", "NextPageKey");
     keygrab_button_set_key(KEYGRAB_BUTTON(self->next_page_button[0]), 
         ((FcitxHotkeys *)value.hotkey)->hotkey[0].sym, 
         ((FcitxHotkeys *)value.hotkey)->hotkey[0].state);
@@ -167,6 +152,7 @@ fcitx_wizard_hotkey_widget_load_conf(FcitxWizardHotkeyWidget *self)
 void 
 fcitx_wizard_hotkey_widget_data_changed(FcitxWizardHotkeyWidget *self)
 {
+/*
     FILE *fp;
     GError  *error;
     gchar *argv[3];
@@ -185,7 +171,7 @@ fcitx_wizard_hotkey_widget_data_changed(FcitxWizardHotkeyWidget *self)
     argv[1] = "-r";
     argv[2] = 0;
     g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error);
-   
+*/   
 }
 
 void 
@@ -195,6 +181,7 @@ trigger_key_button_changed(GtkWidget* button,
     guint key;
     GdkModifierType mods;
     FcitxWizardHotkeyWidget *self = user_data;
+    File_Conf_Data* conf = self->config_conf_data->conf_data;
     
     keygrab_button_get_key(KEYGRAB_BUTTON(self->trigger_key_button[0]), &key, &mods);
     self->conf_data.trigger_key.hotkey[0].sym = key;
@@ -207,7 +194,7 @@ trigger_key_button_changed(GtkWidget* button,
     self->conf_data.trigger_key.hotkey[1].desc = FcitxHotkeyGetKeyString(key, mods);
     
 
-    FcitxConfigBindValue(self->config->config.configFile, "Hotkey", "TriggerKey", 
+    FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "TriggerKey", 
         &self->conf_data.trigger_key, NULL, NULL);
 
     fcitx_wizard_hotkey_widget_data_changed(self);
@@ -218,13 +205,14 @@ im_switch_key_button_toggled(GtkWidget* button,
     gpointer user_data)
 {
     FcitxWizardHotkeyWidget *self = user_data;
+    File_Conf_Data* conf = self->config_conf_data->conf_data;
 
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button)))
         self->conf_data.im_switch_key = true;
     else
         self->conf_data.im_switch_key = false;
 
-    FcitxConfigBindValue(self->config->config.configFile, "Hotkey", "IMSwitchKey", 
+    FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "IMSwitchKey", 
         &self->conf_data.im_switch_key, NULL, NULL);
 
     fcitx_wizard_hotkey_widget_data_changed(self);
@@ -235,10 +223,11 @@ im_switch_hotkey_combo_changed(GtkWidget* combo,
     gpointer user_data)
 {
     FcitxWizardHotkeyWidget *self = user_data;
+    File_Conf_Data* conf = self->config_conf_data->conf_data;
 
     self->conf_data.im_switch_hotkey = gtk_combo_box_get_active(GTK_COMBO_BOX(combo));
 
-    FcitxConfigBindValue(self->config->config.configFile, "Hotkey", "IMSwitchHotkey", 
+    FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "IMSwitchHotkey", 
         &self->conf_data.im_switch_hotkey, NULL, NULL);
 
     fcitx_wizard_hotkey_widget_data_changed(self);
@@ -251,6 +240,7 @@ prev_page_button_changed(GtkWidget* button,
     guint key;
     GdkModifierType mods;
     FcitxWizardHotkeyWidget *self = user_data;
+    File_Conf_Data* conf = self->config_conf_data->conf_data;
     
     keygrab_button_get_key(KEYGRAB_BUTTON(self->prev_page_button[0]), &key, &mods);
     self->conf_data.prev_page.hotkey[0].sym = key;
@@ -263,7 +253,7 @@ prev_page_button_changed(GtkWidget* button,
     self->conf_data.prev_page.hotkey[1].desc = FcitxHotkeyGetKeyString(key, mods);
 
 
-    FcitxConfigBindValue(self->config->config.configFile, "Hotkey", "PrevPageKey", 
+    FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "PrevPageKey", 
         &self->conf_data.prev_page, NULL, NULL);
 
     fcitx_wizard_hotkey_widget_data_changed(self);
@@ -276,6 +266,7 @@ next_page_button_changed(GtkWidget* button,
     guint key;
     GdkModifierType mods;
     FcitxWizardHotkeyWidget *self = user_data;
+    File_Conf_Data* conf = self->config_conf_data->conf_data;
     
     keygrab_button_get_key(KEYGRAB_BUTTON(self->next_page_button[0]), &key, &mods);
     self->conf_data.next_page.hotkey[0].sym = key;
@@ -287,7 +278,7 @@ next_page_button_changed(GtkWidget* button,
     self->conf_data.next_page.hotkey[1].state = mods;
     self->conf_data.next_page.hotkey[1].desc = FcitxHotkeyGetKeyString(key, mods);
 
-    FcitxConfigBindValue(self->config->config.configFile, "Hotkey", "NextPageKey", 
+    FcitxConfigBindValue(conf->config->config.configFile, "Hotkey", "NextPageKey", 
         &self->conf_data.next_page, NULL, NULL);
 
     fcitx_wizard_hotkey_widget_data_changed(self);
@@ -400,13 +391,11 @@ fcitx_wizard_hotkey_widget_setup_ui(FcitxWizardHotkeyWidget *self)
 
 
 GtkWidget*
-fcitx_wizard_hotkey_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix, 
-    const gchar* name, const gchar* subconfig)
+fcitx_wizard_hotkey_widget_new(Wizard_Conf_Data *config)
 {
     FcitxWizardHotkeyWidget* widget =
         g_object_new(FCITX_TYPE_WIZARD_HOTKEY_WIDGET,
-            "cfdesc", cfdesc, "prefix", 
-            prefix, "name", name, "subconfig", subconfig, NULL);
+            "config", config, NULL);
 
     fcitx_wizard_hotkey_widget_setup_ui(widget);
 
@@ -415,27 +404,6 @@ fcitx_wizard_hotkey_widget_new(FcitxConfigFileDesc* cfdesc, const gchar* prefix,
 
 void fcitx_wizard_hotkey_widget_dispose(GObject* object)
 {
-    FcitxWizardHotkeyWidget* self = FCITX_WIZARD_HOTKEY_WIDGET(object);
-    if (self->name) {
-        g_free(self->name);
-        self->name = NULL;
-    }
-
-    if (self->prefix) {
-        g_free(self->prefix);
-        self->prefix = NULL;
-    }
-
-    if (self->parser) {
-        sub_config_parser_free(self->parser);
-        self->parser = NULL;
-    }
- 
-    if (self->config) {
-        dummy_config_free(self->config);
-        self->config = NULL;
-    }
- 
     G_OBJECT_CLASS (fcitx_wizard_hotkey_widget_parent_class)->dispose (object);
 }
 
@@ -446,23 +414,8 @@ fcitx_wizard_hotkey_widget_set_property(GObject *gobject,
 {
     FcitxWizardHotkeyWidget* config_widget = FCITX_WIZARD_HOTKEY_WIDGET(gobject);
     switch (prop_id) {
-    case PROP_CONFIG_DESC:
-        config_widget->cfdesc = g_value_get_pointer(value);
-        break;
-    case PROP_PREFIX:
-        if (config_widget->prefix)
-            g_free(config_widget->prefix);
-        config_widget->prefix = g_strdup(g_value_get_string(value));
-        break;
-    case PROP_NAME:
-        if (config_widget->name)
-            g_free(config_widget->name);
-        config_widget->name = g_strdup(g_value_get_string(value));
-        break;
-    case PROP_SUBCONFIG:
-        if (config_widget->parser)
-            sub_config_parser_free(config_widget->parser);
-        config_widget->parser = sub_config_parser_new(g_value_get_string(value));
+    case PROP_CONFIG:
+        config_widget->config_conf_data = g_value_get_pointer(value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, prop_id, pspec);

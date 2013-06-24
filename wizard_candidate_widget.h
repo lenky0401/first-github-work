@@ -25,6 +25,7 @@
 #include "fcitx-gclient/fcitxinputmethod.h"
 #include "sub_config_parser.h"
 #include "dummy_config.h"
+#include "wizard_conf_data.h"
 
 G_BEGIN_DECLS
     ;//GQK
@@ -62,17 +63,9 @@ struct _FcitxWizardCandidateConfData {
 
 struct _FcitxWizardCandidateWidget {
     GtkBox parent;
-    FcitxConfigFileDesc* cfdesc;
-    gchar* prefix;
-    gchar* name;
-    FcitxSubConfigParser* parser;
-    DummyConfig* config;
 
-    FcitxConfigFileDesc* cfdesc1;
-    gchar* prefix1;
-    gchar* name1;
-    FcitxSubConfigParser* parser1;
-    DummyConfig* config1;
+    Wizard_Conf_Data *config_conf_data;
+    Wizard_Conf_Data *classic_ui_conf_data;
 
     GtkWidget *candidate_word_number_spin_button;
     GtkWidget *font_size_spin_button;
@@ -89,10 +82,8 @@ struct _FcitxWizardCandidateWidgetClass {
 };
 
 GtkWidget*
-fcitx_wizard_candidate_widget_new(FcitxConfigFileDesc* cfdesc, 
-    const gchar* prefix, const gchar* name, const gchar* subconfig,
-    FcitxConfigFileDesc* cfdesc1, 
-    const gchar* prefix1, const gchar* name1, const gchar* subconfig1);
+fcitx_wizard_candidate_widget_new(Wizard_Conf_Data *config,
+    Wizard_Conf_Data *classic_ui);
 
 
 G_END_DECLS

@@ -23,8 +23,10 @@
 #include <gtk/gtk.h>
 #include <gio/gio.h>
 #include "fcitx-gclient/fcitxinputmethod.h"
+#include "wizard_conf_data.h"
 
 G_BEGIN_DECLS
+;//
 
 #define FCITX_TYPE_WIZARD_IM_WIDGET fcitx_wizard_im_widget_get_type()
 
@@ -52,6 +54,8 @@ struct _FcitxWizardImWidget {
     GtkWidget* imview;
     FcitxInputMethod* improxy;
     GPtrArray* array;
+    GPtrArray* im_dialog_array;
+    GPtrArray* im_dialog_array_del;
     gchar* focus;
     GtkWidget* addimbutton;
     GtkWidget* delimbutton;
@@ -60,6 +64,7 @@ struct _FcitxWizardImWidget {
     GtkWidget* scrolledwindow;
     GtkWidget* toolbar;
     GtkBuilder* builder;
+    Wizard_Conf_Data *conf_data;
 };
 
 struct _FcitxWizardImWidgetClass {
@@ -67,7 +72,12 @@ struct _FcitxWizardImWidgetClass {
 };
 
 GtkWidget*
-fcitx_wizard_im_widget_new(void);
+fcitx_wizard_im_widget_new(Wizard_Conf_Data *conf_data);
+
+void 
+_fcitx_wizard_im_widget_refresh_view(FcitxWizardImWidget* self);
+
+void _fcitx_wizard_im_widget_update(void* data);
 
 G_END_DECLS
 
